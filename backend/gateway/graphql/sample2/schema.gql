@@ -1,0 +1,19 @@
+type User {
+  id: Int! # the ! means that every User object _must_ have an id
+  firstName: String
+  lastName: String
+}
+
+
+# the schema allows the following two queries:
+type Query {
+  User(firstName: String, lastName: String): User
+}
+
+# this schema allows the following two mutations:
+type Mutation {
+  createUser(
+    firstName: String!
+    lastName: String!
+  ): User
+}
