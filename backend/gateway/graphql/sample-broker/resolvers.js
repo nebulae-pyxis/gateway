@@ -1,7 +1,9 @@
 module.exports = {
   Query: {
-    User(_, { firstName, lastName }) {
-      return { id: 2, firstName, lastName };
+    User(root, args, context) {
+      return context.broker
+        .forwardAndGetReply$('sample', { root, args, jwt: {} })
+        .toPromise();
     },
   },
   Mutation: {
