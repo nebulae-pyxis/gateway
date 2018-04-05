@@ -1,27 +1,29 @@
 'use strict'
 
 const Rx = require('rxjs');
-const REPLY_TIMEOUT = process.env.REPLY_TIMEOUT || 2000;
-// Imports the Google Cloud client library
-const PubSub = require('@google-cloud/pubsub');
-const projectId = process.env.GCLOUD_PROJECT_ID;
-const GATEWAY_REPLIES_TOPIC = process.env.GATEWAY_REPLIES_TOPIC;
-const GATEWAY_REPLIES_TOPIC_SUBSCRIPTION = process.env.GATEWAY_REPLIES_TOPIC_SUBSCRIPTION;
+const uuidv4 = require('uuid/v4');
 
 class PubSubBroker {
 
-    constructor() {
+    constructor({ projectId, gatewayRepliesTopic, gatewayRepliesTopicSubscription, replyTimeOut }) {
+        this.projectId = projectId
+        this.gatewayRepliesTopic = gatewayRepliesTopic;
+        this.gatewayRepliesTopicSubscription = gatewayRepliesTopicSubscription;
+        this.replyTimeOut = replyTimeOut;
+
         /**
          * Rx Subject for every message reply
          */
         this.replies$ = new Rx.BehaviorSubject();
+        this.senderId = uuidv4();
         /**
          * Map of verified topics
          */
         this.verifiedTopics = {};
 
+        const PubSub = require('@google-cloud/pubsub');
         this.pubsubClient = new PubSub({
-            projectId: projectId,
+            projectId: this.projectId,
         });
         //lets start listening to messages
         this.startMessageListener();
@@ -32,9 +34,9 @@ class PubSubBroker {
      * @param {string} topic topic to publish
      * @param { {root,args,jwt} } message payload {root,args,jwt}
      */
-    forward$(topic, payload) {
+    forward$(topic, payload, ops = {}) {
         return this.getTopic$(topic)
-            .switchMap(topic => this.publish$(topic, payload))
+            .switchMap(topic => this.publish$(topic, payload, ops))
     }
 
     /**
@@ -45,7 +47,7 @@ class PubSubBroker {
      * 
      * Returns an Observable that resolves the message response
      */
-    forwardAndGetReply$(topic, payload, timeout = REPLY_TIMEOUT) {
+    forwardAndGetReply$(topic, payload, timeout = this.replyTimeOut) {
         return this.forward$(topic, payload)
             .switchMap((messageId) => this.getMessageReply$(messageId, timeout))
     }
@@ -56,11 +58,13 @@ class PubSubBroker {
      * @param {string} correlationId 
      * @param {number} timeout 
      */
-    getMessageReply$(correlationId, timeout = REPLY_TIMEOUT) {
+    getMessageReply$(correlationId, timeout = this.replyTimeOut, ignoreSelfEvents = true) {
         return this.replies$
-            .filter(msg => msg && msg.correlationId === correlationId)
+            .filter(msg => msg)
+            .filter(msg => !ignoreSelfEvents || msg.attributes.senderId !== this.senderId)
+            .filter(msg => msg.correlationId === correlationId)
             .map(msg => msg.data)
-            .timeout(2000)
+            .timeout(timeout)
             .first();
     }
 
@@ -92,7 +96,6 @@ class PubSubBroker {
                 ;
         }
         //return cached topic
-        console.log(`Topic ${topicName} already existed it is cached`);
         return Rx.Observable.of(cachedTopic);
     }
 
@@ -104,7 +107,7 @@ class PubSubBroker {
         return Rx.Observable.fromPromise(this.pubsubClient.createTopic(topicName))
             .switchMap(data => {
                 this.verifiedTopics[topicName] = this.pubsubClient.topic(topicName);
-                console.log(`Topic ${topicName} have been created set into the cache`);
+                console.log(`Topic ${topicName} have been created and set into the cache`);
                 return Rx.Observable.of(this.verifiedTopics[topicName]);
             });
     }
@@ -115,14 +118,11 @@ class PubSubBroker {
      * @param {Topic} topic 
      * @param {Object} data 
      */
-    publish$(topic, data) {
+    publish$(topic, data, { correlationId } = {}) {
         const dataBuffer = Buffer.from(JSON.stringify(data));
         return Rx.Observable.fromPromise(
-            topic.publisher().publish(dataBuffer))
-            .do(messageId => console.log(`Message published through ${topic.name}, MessageId=${messageId}`))
-            
-            // auto reply, for testing only
-            //.do(messageId => this.verifiedTopics[GATEWAY_REPLIES_TOPIC].publisher().publish(Buffer.from(JSON.stringify( { id: 1, firstName:'aaa', lastName:'bbb' })),{correlationId:messageId}).then(result => console.log(`========${result}`)) )
+            topic.publisher().publish(dataBuffer, { senderId: this.senderId, correlationId }))
+            //.do(messageId => console.log(`Message published through ${topic.name}, MessageId=${messageId}`))
             ;
     }
 
@@ -143,11 +143,11 @@ class PubSubBroker {
      * Starts to listen messages
      */
     startMessageListener() {
-        this.getSubscription$(GATEWAY_REPLIES_TOPIC, GATEWAY_REPLIES_TOPIC_SUBSCRIPTION)
+        this.getSubscription$(this.gatewayRepliesTopic, this.gatewayRepliesTopicSubscription)
             .subscribe(
                 (pubSubSubscription) => {
                     pubSubSubscription.on(`message`, message => {
-                        console.log(`Received message ${message.id}:`);
+                        //console.log(`Received message ${message.id}:`);
                         this.replies$.next({ id: message.id, data: JSON.parse(message.data), attributes: message.attributes, correlationId: message.attributes.correlationId });
                         message.ack();
                     });
@@ -156,9 +156,20 @@ class PubSubBroker {
                     console.error('Failed to obtain GatewayReplies subscription', err);
                 },
                 () => {
-                    console.log('GatewayReplies listener has completed!');
+                    //console.log('GatewayReplies listener has completed!');
                 }
             );
+    }
+
+    /**
+     * Stops broker 
+     */
+    disconnectBroker() {
+        this.getSubscription$(this.gatewayRepliesTopic, this.gatewayRepliesTopicSubscription).subscribe(
+            (subscription) => subscription.removeListener(`message`),
+            (error) => console.error(`Error disconnecting Broker`, error),
+            () => console.log('Broker disconnected')
+        );
     }
 }
 
