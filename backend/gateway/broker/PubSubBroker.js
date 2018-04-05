@@ -33,6 +33,7 @@ class PubSubBroker {
      * Forward the Graphql query/mutation to the Microservices
      * @param {string} topic topic to publish
      * @param { {root,args,jwt} } message payload {root,args,jwt}
+     * @param {Object} ops {correlationId, messageId} 
      */
     forward$(topic, payload, ops = {}) {
         return this.getTopic$(topic)
@@ -44,12 +45,14 @@ class PubSubBroker {
      * @param {string} topic topic to publish
      * @param { {root,args,jwt} } message payload {root,args,jwt}
      * @param {number} timeout wait timeout millis
+     * @param {boolean} ignoreSelfEvents ignore messages comming from this clien
+     * @param {Object} ops {correlationId, messageId}
      * 
      * Returns an Observable that resolves the message response
      */
-    forwardAndGetReply$(topic, payload, timeout = this.replyTimeOut) {
-        return this.forward$(topic, payload)
-            .switchMap((messageId) => this.getMessageReply$(messageId, timeout))
+    forwardAndGetReply$(topic, payload, timeout = this.replyTimeout, ignoreSelfEvents = true, ops) {
+        return this.forward$(topic, payload, ops)
+            .switchMap((messageId) => this.getMessageReply$(messageId, timeout, ignoreSelfEvents))
     }
 
 
@@ -117,8 +120,9 @@ class PubSubBroker {
      * Returns an Observable that resolves to the sent message ID
      * @param {Topic} topic 
      * @param {Object} data 
+     * @param {Object} ops {correlationId, messageId} 
      */
-    publish$(topic, data, { correlationId } = {}) {
+    publish$(topic, data,  { correlationId, messageId } = {}) {
         const dataBuffer = Buffer.from(JSON.stringify(data));
         return Rx.Observable.fromPromise(
             topic.publisher().publish(dataBuffer, { senderId: this.senderId, correlationId }))

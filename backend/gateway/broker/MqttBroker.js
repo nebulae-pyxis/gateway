@@ -30,10 +30,10 @@ class MqttBroker {
      * Forward the Graphql query/mutation to the Microservices
      * @param {string} topic topic to publish
      * @param {Object} message payload {root,args,jwt}
-     * @param {Object} ops {correlationId} 
+     * @param {Object} ops {correlationId, messageId} 
      */
-    forward$(topic, payload, { correlationId } = {}) {
-        return this.publish$(topic, payload, { correlationId });
+    forward$(topic, payload, ops = {}) {
+        return this.publish$(topic, payload, ops);
     }
 
     /**
@@ -41,12 +41,14 @@ class MqttBroker {
      * @param {string} topic topic to publish
      * @param { {root,args,jwt} } message payload {root,args,jwt}
      * @param {number} timeout wait timeout millis
+     * @param {boolean} ignoreSelfEvents ignore messages comming from this clien
+     * @param {Object} ops {correlationId, messageId}
      * 
      * Returns an Observable that resolves the message response
      */
-    forwardAndGetReply$(topic, payload, timeout = this.replyTimeout) {
-        return this.forward$(topic, payload)
-            .switchMap((messageId) => this.getMessageReply$(messageId, timeout))
+    forwardAndGetReply$(topic, payload, timeout = this.replyTimeout, ignoreSelfEvents = true, ops) {
+        return this.forward$(topic, payload, ops)
+            .switchMap((messageId) => this.getMessageReply$(messageId, timeout, ignoreSelfEvents))
     }
 
 
@@ -73,8 +75,8 @@ class MqttBroker {
      * @param {Object} data 
      * @param {Object} ops {correlationId} 
      */
-    publish$(topicName, data, { correlationId } = {}) {
-        const uuid = uuidv4();
+    publish$(topicName, data, { correlationId, messageId } = {}) {
+        const uuid = messageId || uuidv4();
         const dataBuffer = JSON.stringify(
             {
                 id: uuid,

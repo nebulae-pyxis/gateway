@@ -14,7 +14,7 @@ process.env.GOOGLE_APPLICATION_CREDENTIALS = '/Users/sebastianmolano/NebulaE/Pro
 
 describe('PUBSUB BROKER', function () {
     describe('Prepare PUBSUB broker', function () {
-        it('instance PubSubBroker', function (done) {            
+        it('instance PubSubBroker', function (done) {
             pubsubBroker = new PubSubBroker({
                 replyTimeOut: 10000,
                 projectId: 'ne-tpm-prod',
@@ -50,6 +50,29 @@ describe('PUBSUB BROKER', function () {
                     }
                 );
         });
+        // it('Publish and recive response using forwardAndGetReply$', function (done) {
+
+        //     const messageId = uuidv4();
+        //     Rx.Observable.forkJoin(
+        //         //send payload and listen for the reply
+        //         mqttBroker.forwardAndGetReply$('Test', payload, 1800, false, { messageId }),
+
+        //         //send a dummy reply, but wait a litle bit before send it so the listener is ready
+        //         Rx.Observable.of({})
+        //             .delay(200)
+        //             .switchMap(() => mqttBroker.forward$('gateway-replies-test', { x: 1, y: 2, z: 3 }, { correlationId: messageId }))
+        //     ).subscribe(
+        //         ([response, sentResponseMessageId]) => {
+        //             assert.deepEqual(response, { x: 1, y: 2, z: 3 });
+        //         },
+        //         error => {
+        //             return done(new Error(error));
+        //         },
+        //         () => {
+        //             return done();
+        //         }
+        //     );
+        // });
     });
     describe('de-prepare PubSub broker', function () {
         it('stop PubSubBroker', function (done) {
