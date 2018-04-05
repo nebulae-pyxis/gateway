@@ -73,7 +73,7 @@ class MqttBroker {
      * Returns an Observable that resolves to the sent message ID
      * @param {string} topicName 
      * @param {Object} data 
-     * @param {Object} ops {correlationId} 
+     * @param {Object} ops {correlationId, messageId} 
      */
     publish$(topicName, data, { correlationId, messageId } = {}) {
         const uuid = messageId || uuidv4();
