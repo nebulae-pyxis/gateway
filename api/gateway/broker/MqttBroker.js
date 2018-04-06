@@ -114,8 +114,7 @@ class MqttBroker {
         });
 
         this.mqttClient.on('message', function (topic, message) {
-            const envelope = JSON.parse(message);
-            console.log(`Received message id: ${envelope.id}`);
+            const envelope = JSON.parse(message);            
             // message is Buffer
             that.replies$.next(
                 {
