@@ -2,7 +2,7 @@ module.exports = {
   Query: {
     User(root, args, context) {
       return context.broker
-        .forwardAndGetReply$('sample', { root, args, jwt: {} })
+        .forwardAndGetReply$('sample','sample', { root, args, jwt: {} })
         .toPromise();
     },
   },

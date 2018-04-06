@@ -32,17 +32,19 @@ class PubSubBroker {
     /**
      * Forward the Graphql query/mutation to the Microservices
      * @param {string} topic topic to publish
+     * @param {string} type message(payload) type
      * @param { {root,args,jwt} } message payload {root,args,jwt}
      * @param {Object} ops {correlationId, messageId} 
      */
-    forward$(topic, payload, ops = {}) {
+    forward$(topic, type, payload, ops = {}) {
         return this.getTopic$(topic)
-            .switchMap(topic => this.publish$(topic, payload, ops))
+            .switchMap(topic => this.publish$(topic, type, payload, ops))
     }
 
     /**
      * Forward the Graphql query/mutation to the Microservices
      * @param {string} topic topic to publish
+     * @param {string} type message(payload) type
      * @param { {root,args,jwt} } message payload {root,args,jwt}
      * @param {number} timeout wait timeout millis
      * @param {boolean} ignoreSelfEvents ignore messages comming from this clien
@@ -50,8 +52,8 @@ class PubSubBroker {
      * 
      * Returns an Observable that resolves the message response
      */
-    forwardAndGetReply$(topic, payload, timeout = this.replyTimeout, ignoreSelfEvents = true, ops) {
-        return this.forward$(topic, payload, ops)
+    forwardAndGetReply$(topic, type, payload, timeout = this.replyTimeout, ignoreSelfEvents = true, ops) {
+        return this.forward$(topic, type, payload, ops)
             .switchMap((messageId) => this.getMessageReply$(messageId, timeout, ignoreSelfEvents))
     }
 
@@ -119,13 +121,19 @@ class PubSubBroker {
      * Publish data throught a topic
      * Returns an Observable that resolves to the sent message ID
      * @param {Topic} topic 
+     * @param {string} type message(payload) type
      * @param {Object} data 
      * @param {Object} ops {correlationId, messageId} 
      */
-    publish$(topic, data,  { correlationId, messageId } = {}) {
+    publish$(topic, type, data, { correlationId, messageId } = {}) {
         const dataBuffer = Buffer.from(JSON.stringify(data));
         return Rx.Observable.fromPromise(
-            topic.publisher().publish(dataBuffer, { senderId: this.senderId, correlationId }))
+            topic.publisher().publish(dataBuffer,
+                {
+                    senderId: this.senderId,
+                    correlationId,
+                    type
+                }))
             //.do(messageId => console.log(`Message published through ${topic.name}, MessageId=${messageId}`))
             ;
     }
@@ -152,7 +160,15 @@ class PubSubBroker {
                 (pubSubSubscription) => {
                     pubSubSubscription.on(`message`, message => {
                         //console.log(`Received message ${message.id}:`);
-                        this.replies$.next({ id: message.id, data: JSON.parse(message.data), attributes: message.attributes, correlationId: message.attributes.correlationId });
+                        this.replies$.next(
+                            {
+                                id: message.id,
+                                type: message.attributes.type,
+                                data: JSON.parse(message.data),
+                                attributes: message.attributes,
+                                correlationId: message.attributes.correlationId
+                            }
+                        );
                         message.ack();
                     });
                 },

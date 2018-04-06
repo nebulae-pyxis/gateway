@@ -29,16 +29,18 @@ class MqttBroker {
     /**
      * Forward the Graphql query/mutation to the Microservices
      * @param {string} topic topic to publish
+     * @param {string} type message(payload) type
      * @param {Object} message payload {root,args,jwt}
      * @param {Object} ops {correlationId, messageId} 
      */
-    forward$(topic, payload, ops = {}) {
-        return this.publish$(topic, payload, ops);
+    forward$(topic, type, payload, ops = {}) {
+        return this.publish$(topic, type, payload, ops);
     }
 
     /**
      * Forward the Graphql query/mutation to the Microservices
      * @param {string} topic topic to publish
+     * @param {string} type message(payload) type
      * @param { {root,args,jwt} } message payload {root,args,jwt}
      * @param {number} timeout wait timeout millis
      * @param {boolean} ignoreSelfEvents ignore messages comming from this clien
@@ -46,8 +48,8 @@ class MqttBroker {
      * 
      * Returns an Observable that resolves the message response
      */
-    forwardAndGetReply$(topic, payload, timeout = this.replyTimeout, ignoreSelfEvents = true, ops) {
-        return this.forward$(topic, payload, ops)
+    forwardAndGetReply$(topic, type, payload, timeout = this.replyTimeout, ignoreSelfEvents = true, ops) {
+        return this.forward$(topic, type, payload, ops)
             .switchMap((messageId) => this.getMessageReply$(messageId, timeout, ignoreSelfEvents))
     }
 
@@ -72,14 +74,16 @@ class MqttBroker {
      * Publish data throught a topic
      * Returns an Observable that resolves to the sent message ID
      * @param {string} topicName 
+     * @param {string} type message(payload) type
      * @param {Object} data 
      * @param {Object} ops {correlationId, messageId} 
      */
-    publish$(topicName, data, { correlationId, messageId } = {}) {
+    publish$(topicName, type, data, { correlationId, messageId } = {}) {
         const uuid = messageId || uuidv4();
         const dataBuffer = JSON.stringify(
             {
                 id: uuid,
+                type: type,
                 data,
                 attributes: {
                     senderId: this.senderId,
@@ -116,6 +120,7 @@ class MqttBroker {
             that.replies$.next(
                 {
                     id: envelope.id,
+                    type: envelope.type,
                     data: envelope.data,
                     attributes: envelope.attributes,
                     correlationId: envelope.attributes.correlationId

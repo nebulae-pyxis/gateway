@@ -36,7 +36,7 @@ describe('MQTT BROKER', function () {
     });
     describe('Publish and listent on MQTT', function () {
         it('Publish and recive response using forward$ + getMessageReply$', function (done) {
-            mqttBroker.forward$('Test', payload)
+            mqttBroker.forward$('Test', 'Test', payload)
                 .switchMap((sentMessageId) => Rx.Observable.forkJoin(
                     //listen for the reply
                     mqttBroker.getMessageReply$(sentMessageId, 1800, false),
@@ -44,7 +44,7 @@ describe('MQTT BROKER', function () {
                     //send a dummy reply, but wait a litle bit before send it so the listener is ready
                     Rx.Observable.of({})
                         .delay(200)
-                        .switchMap(() => mqttBroker.forward$('gateway-replies-test', { x: 1, y: 2, z: 3 }, { correlationId: sentMessageId }))
+                        .switchMap(() => mqttBroker.forward$('gateway-replies-test', 'Test', { x: 1, y: 2, z: 3 }, { correlationId: sentMessageId }))
 
                 )).subscribe(
                     ([response, sentResponseMessageId]) => {
@@ -63,12 +63,12 @@ describe('MQTT BROKER', function () {
             const messageId = uuidv4();
             Rx.Observable.forkJoin(
                 //send payload and listen for the reply
-                mqttBroker.forwardAndGetReply$('Test', payload, 1800, false, { messageId }),
+                mqttBroker.forwardAndGetReply$('Test','Test', payload, 1800, false, { messageId }),
 
                 //send a dummy reply, but wait a litle bit before send it so the listener is ready
                 Rx.Observable.of({})
                     .delay(200)
-                    .switchMap(() => mqttBroker.forward$('gateway-replies-test', { x: 1, y: 2, z: 3 }, { correlationId: messageId }))
+                    .switchMap(() => mqttBroker.forward$('gateway-replies-test','Test', { x: 1, y: 2, z: 3 }, { correlationId: messageId }))
             ).subscribe(
                 ([response, sentResponseMessageId]) => {
                     assert.deepEqual(response, { x: 1, y: 2, z: 3 });

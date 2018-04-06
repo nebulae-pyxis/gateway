@@ -28,7 +28,7 @@ describe('PUBSUB BROKER', function () {
     describe('Publish and listent on PubSub', function () {
         it('Publish and recive response using forward$ + getMessageReply$', function (done) {
             this.timeout(10000);
-            pubsubBroker.forward$('Test', payload)
+            pubsubBroker.forward$('Test','Test', payload)
                 .switchMap((sentMessageId) => Rx.Observable.forkJoin(
                     //listen for the reply
                     pubsubBroker.getMessageReply$(sentMessageId, 9500, false),
@@ -36,7 +36,7 @@ describe('PUBSUB BROKER', function () {
                     //send a dummy reply, but wait a litle bit before send it so the listener is ready
                     Rx.Observable.of({})
                         .delay(1000)
-                        .switchMap(() => pubsubBroker.forward$('gateway-replies', { x: 1, y: 2, z: 3 }, { correlationId: sentMessageId }))
+                        .switchMap(() => pubsubBroker.forward$('gateway-replies','Test', { x: 1, y: 2, z: 3 }, { correlationId: sentMessageId }))
 
                 )).subscribe(
                     ([response, sentResponseMessageId]) => {
