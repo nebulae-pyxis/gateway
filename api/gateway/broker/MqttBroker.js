@@ -86,7 +86,8 @@ class MqttBroker {
                 data,
                 attributes: {
                     senderId: this.senderId,
-                    correlationId
+                    correlationId,
+                    replyTo:this.gatewayRepliesTopic
                 }
             }
         );
