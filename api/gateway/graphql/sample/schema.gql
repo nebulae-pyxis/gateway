@@ -1,5 +1,5 @@
 type Author {
-  id: Int! # the ! means that every author object _must_ have an id
+  id: String! # the ! means that every author object _must_ have an id
   firstName: String
   lastName: String
 }
@@ -16,4 +16,9 @@ type Mutation {
     firstName: String!
     lastName: String!
   ): Author
+}
+
+type Subscription {
+  authorAdded: Author,
+  authorAddedFiltered(lastName: String!): Author
 }
