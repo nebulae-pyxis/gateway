@@ -4,6 +4,7 @@ if (process.env.NODE_ENV !== 'production') {
     require('dotenv').load();
 }
 
+const Rx = require('rxjs');
 const express = require('express');
 const bodyParser = require('body-parser');
 const graphqlServer = require('apollo-server-express');
@@ -22,7 +23,11 @@ const execute = graphql.execute;
 const subscribe = graphql.subscribe;
 const http = require('http');
 const SubscriptionServer = require('subscriptions-transport-ws').SubscriptionServer;
-const jwt = require('express-jwt');
+//This lib is the easiest way to validate through http using express
+const expressJwt = require('express-jwt');
+//This is for validation through websockets
+const jsonwebtoken = require('jsonwebtoken');
+
 
 //Service Port
 const PORT = process.env.GRAPHQL_END_POINT_PORT || 3000;
@@ -39,17 +44,15 @@ const server = express();
 // bodyParser is needed just for POST.
 server.use(cors());
 
-// server.use(
-//     process.env.GRAPHQL_HTTP_END_POINT,
-//     bodyParser.json(),
-//     graphqlExpress({ schema, context }));
+const jwtPublicKey = process.env.JWT_PUBLIC_KEY.replace(/\\n/g, '\n');
 
 
+//Validate JWT token throug Express HTTP
 server.use(
     process.env.GRAPHQL_HTTP_END_POINT,
     bodyParser.json(),
-    jwt({
-        secret: process.env.JWT_PUBLIC_KEY.replace(/\\n/g, '\n'),
+    expressJwt({
+        secret: jwtPublicKey,
         requestProperty: 'authToken',
         credentialsRequired: true,
         algorithms: ['RS256']
@@ -57,10 +60,12 @@ server.use(
         schema,
         context: {
             authToken: req.authToken,
-            broker
+            encodedToken: req.headers['authorization'] ? req.headers['authorization'].replace('Bearer ', '') : undefined,
+            broker,
         },
     })));
 
+// Expose GraphiQl interface
 server.use(process.env.GRAPHIQL_HTTP_END_POINT, graphiqlExpress(
     {
         endpointURL: process.env.GRAPHQL_HTTP_END_POINT,
@@ -69,7 +74,7 @@ server.use(process.env.GRAPHIQL_HTTP_END_POINT, graphiqlExpress(
 ));
 
 
-// Wrap the Express server
+// Wrap the Express server and combined with WebSockets
 const ws = http.createServer(server);
 ws.listen(PORT, () => {
     new SubscriptionServer(
@@ -77,35 +82,38 @@ ws.listen(PORT, () => {
             execute,
             subscribe,
             schema,
-            onConnect: (connectionParams, webSocket, context) => {
-                console.log(`GraphQL_WS.onConnect: ${JSON.stringify({ connectionParams })}`);
-                if (!connectionParams.authToken) {
-                    // return validateToken(connectionParams.authToken)
-                    //     .then(findUser(connectionParams.authToken))
-                    //     .then((user) => {
-                    //         return {
-                    //             currentUser: user,
-                    //         };
-                    //     });
-                    console.log('Missing auth token!');
-                    console.log(`para,s: :${JSON.stringify(connectionParams,null,2)}`);
+            onConnect: async (connectionParams, webSocket, connectionContext) => {
+                console.log(`GraphQL_WS.onConnect: origin=${connectionContext.request.headers.origin} url=${connectionContext.request.url}`);
+                const encondedToken$ = connectionParams.authToken
+                    ? Rx.Observable.of(connectionParams.authToken)
+                    : connectionContext.request.headers['authorization']
+                        ? Rx.Observable.of(connectionContext.request.headers['authorization'])
+                            .map(header => {
+                                return header.replace('Bearer ', '');
+                            })
+                        : undefined;
+                if (!encondedToken$) {
                     throw new Error('Missing auth token!');
-                }else{
-                    console.log(`auth token: :${connectionParams.auth}`);
                 }
-
-                
+                const authToken = await encondedToken$.map(
+                    encondedToken => jsonwebtoken.verify(encondedToken, jwtPublicKey))
+                    .toPromise()
+                    .catch(error => console.error(`Failed to verify jwt token on WebSocket channel: ${error.message}`, error));
+                const encondedToken = await encondedToken$.toPromise()
+                    .catch(error => console.error(`Failed to extract decoded jwt token on WebSocket channel: ${error.message}`, error));
+                return { broker, authToken, encondedToken };
             },
-            onOperation: (message, params, webSocket) => {
-                console.log(`GraphQL_WS.onOperation: ${JSON.stringify({ message, params })}`);
-                return message;
+            onDisconnect: (webSocket, connectionContext) => {
+                console.log(`GraphQL_WS.onDisconnect: origin=${connectionContext.request.headers.origin} url=${connectionContext.request.url}`);
             },
-            onOperationDone: webSocket => {
-                console.log(`GraphQL_WS.onOperationDone ${JSON.stringify({})}`);
-            },
-            onDisconnect: (webSocket, context) => {
-                console.log(`GraphQL_WS.onDisconnect: ${JSON.stringify({})}`);
-            },
+            // DO NOT ACTIVATE: FOR SOME REASON THIS MESS UP WITH CHAIN AND DOES NOT INJECT THE ARG AND CONTEXT ON THE RESOLVER
+            // onOperation: (message, params, webSocket) => {
+            //     console.log(`GraphQL_WS.onOperation: ${JSON.stringify({ message, params })}`);
+            //     return message;
+            // },
+            // onOperationDone: webSocket => {
+            //     console.log(`GraphQL_WS.onOperationDone ${JSON.stringify({})}`);
+            // },            
         },
         {
             server: ws,
@@ -115,6 +123,4 @@ ws.listen(PORT, () => {
     console.log(`HTTP END POINT: http://${process.env.GRAPHQL_END_POINT_HOST}:${process.env.GRAPHQL_END_POINT_PORT}${process.env.GRAPHQL_HTTP_END_POINT}`);
     console.log(`WEBSOCKET END POINT: ws://${process.env.GRAPHQL_END_POINT_HOST}:${process.env.GRAPHQL_END_POINT_PORT}${process.env.GRAPHQL_WS_END_POINT}`);
     console.log(`GRAPHIQL PAGE: http://${process.env.GRAPHQL_END_POINT_HOST}:${process.env.GRAPHQL_END_POINT_PORT}${process.env.GRAPHIQL_HTTP_END_POINT}`);
-
-    // Set up the WebSocket for handling GraphQL subscriptions
 });

@@ -11,18 +11,20 @@ module.exports = {
   Mutation: {
     createAuthor: (root, args, context) => {
       const authorAdded = { id: Math.random(), firstName: args.firstName, lastName: args.lastName };
-      pubsub.publish('authorAdded', {authorAdded});
+      pubsub.publish('authorAdded', { authorAdded });
       return authorAdded;
     },
   },
   Subscription: {
     authorAddedFiltered: {
-      subscribe: withFilter(() => pubsub.asyncIterator('authorAdded'), (payload, variables) => {
+      subscribe: withFilter(() => pubsub.asyncIterator('authorAdded'), (payload, variables, context) => {
         return payload.authorAdded.lastName === variables.lastName;
       }),
     },
     authorAdded: {
-      subscribe: () => pubsub.asyncIterator('authorAdded')
+      subscribe(payload, variables, context) {        
+        return pubsub.asyncIterator('authorAdded');
+      }
     }
   },
 }
