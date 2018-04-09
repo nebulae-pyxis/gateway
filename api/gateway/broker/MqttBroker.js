@@ -76,7 +76,7 @@ class MqttBroker {
      * @param {array} types Message types to filter. if undefined means all types
      * @param {number} timeout 
      */
-    getEvent$(types, ignoreSelfEvents = true) {
+    getEvents$(types, ignoreSelfEvents = true) {
         return this.replies$
             .filter(msg => msg)
             .filter(msg => msg.topic === this.gatewayEventsTopic)

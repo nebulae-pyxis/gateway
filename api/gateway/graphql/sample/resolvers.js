@@ -18,14 +18,18 @@ module.exports = {
   },
   Subscription: {
     authorEvent: {
+
       subscribe: withFilter((payload, variables, context, info) => {
-        const subscription = broker.getEvent$(['authorEvent']).subscribe(
-          evt => pubsub.publish('authorEvent', { authorAdded: evt.data }),
+        const subscription = context.broker.getEvents$(['authorEvent']).subscribe(
+          evt => {
+            console.log(`authorEvent received: ${JSON.stringify({ authorEvent: evt.data })}`);
+            pubsub.publish('authorEvent', { authorEvent: evt.data })
+          },
           (error) => console.error('Error listening authorEvent', error),
           () => console.log('authorEvent listener STOPED :D')
         );
 
-        context.webSocket.onUnSubscribe = Observable.create(function (observer) {
+        context.webSocket.onUnSubscribe = Rx.Observable.create((observer) => {
           subscription.unsubscribe();
           observer.next('rxjs subscription had been terminated');
           observer.complete();
@@ -33,7 +37,8 @@ module.exports = {
         return pubsub.asyncIterator('authorEvent');
       },
         (payload, variables, context, info) => {
-          return payload.authorAdded.lastName === variables.lastName;
+          //return payload.authorEvent.lastName === variables.lastName;
+          return true;
         }),
     },
     authorAdded: {
