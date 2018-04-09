@@ -5,10 +5,12 @@ const uuidv4 = require('uuid/v4');
 
 class PubSubBroker {
 
-    constructor({ projectId, gatewayRepliesTopic, gatewayRepliesTopicSubscription, replyTimeOut }) {
+    constructor({ projectId, gatewayRepliesTopic, gatewayRepliesTopicSubscription,gatewayEventsTopic, gatewayEventsTopicSubscription, replyTimeOut }) {
         this.projectId = projectId
         this.gatewayRepliesTopic = gatewayRepliesTopic;
         this.gatewayRepliesTopicSubscription = gatewayRepliesTopicSubscription;
+        this.gatewayEventsTopic = gatewayEventsTopic;
+        this.gatewayEventsTopicSubscription = gatewayEventsTopicSubscription;
         this.replyTimeOut = replyTimeOut;
 
         /**

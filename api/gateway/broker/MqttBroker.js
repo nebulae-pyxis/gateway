@@ -6,8 +6,9 @@ const uuidv4 = require('uuid/v4');
 
 class MqttBroker {
 
-    constructor({ gatewayRepliesTopic, mqttServerUrl, replyTimeout }) {
+    constructor({ gatewayRepliesTopic, mqttServerUrl, replyTimeout, gatewayEventsTopic }) {
         this.gatewayRepliesTopic = gatewayRepliesTopic;
+        this.gatewayEventsTopic = gatewayEventsTopic;
         this.mqttServerUrl = mqttServerUrl;
         this.senderId = uuidv4();
         this.replyTimeout = replyTimeout;
@@ -55,17 +56,33 @@ class MqttBroker {
 
     /**
      * Returns an observable that waits for the message response or throws an error if timeout is exceded
+     * The observable extract the message.data and resolves to it
      * @param {string} correlationId 
      * @param {number} timeout 
      */
     getMessageReply$(correlationId, timeout = this.replyTimeout, ignoreSelfEvents = true) {
         return this.replies$
             .filter(msg => msg)
+            .filter(msg => msg.topic === this.gatewayRepliesTopic)
             .filter(msg => !ignoreSelfEvents || msg.attributes.senderId !== this.senderId)
             .filter(msg => msg && msg.correlationId === correlationId)
             .map(msg => msg.data)
             .timeout(timeout)
             .first();
+    }
+
+    /**
+     * Returns an observable listen to events, and returns the entire message
+     * @param {array} types Message types to filter. if undefined means all types
+     * @param {number} timeout 
+     */
+    getEvent$(types, ignoreSelfEvents = true) {
+        return this.replies$
+            .filter(msg => msg)
+            .filter(msg => msg.topic === this.gatewayEventsTopic)
+            .filter(msg => types ? types.indexOf(msg.type) !== -1 : true)
+            .filter(msg => !ignoreSelfEvents || msg.attributes.senderId !== this.senderId)
+            ;
     }
 
 
@@ -87,7 +104,7 @@ class MqttBroker {
                 attributes: {
                     senderId: this.senderId,
                     correlationId,
-                    replyTo:this.gatewayRepliesTopic
+                    replyTo: this.gatewayRepliesTopic
                 }
             }
         );
@@ -110,14 +127,16 @@ class MqttBroker {
 
         this.mqttClient.on('connect', function () {
             that.mqttClient.subscribe(`${that.gatewayRepliesTopic}`);
-            console.log(`Mqtt client subscribed to ${that.gatewayRepliesTopic}`);
+            that.mqttClient.subscribe(`${that.gatewayEventsTopic}`);
+            console.log(`Mqtt client subscribed to ${that.gatewayRepliesTopic} and ${that.gatewayEventsTopic}`);
         });
 
         this.mqttClient.on('message', function (topic, message) {
-            const envelope = JSON.parse(message);            
+            const envelope = JSON.parse(message);
             // message is Buffer
             that.replies$.next(
                 {
+                    topic: topic,
                     id: envelope.id,
                     type: envelope.type,
                     data: envelope.data,

@@ -11,13 +11,16 @@ switch (BROKER_TYPE) {
             replyTimeOut: process.env.REPLY_TIMEOUT || 2000,
             projectId: process.env.GCLOUD_PROJECT_ID,
             gatewayRepliesTopic: process.env.GATEWAY_REPLIES_TOPIC,
-            gatewayRepliesTopicSubscription: process.env.GATEWAY_REPLIES_TOPIC_SUBSCRIPTION
+            gatewayRepliesTopicSubscription: process.env.GATEWAY_REPLIES_TOPIC_SUBSCRIPTION,
+            gatewayEventsTopic: process.env.GATEWAY_EVENTS_TOPIC,
+            gatewayEventsTopicSubscription: process.env.GATEWAY_EVENTS_TOPIC_SUBSCRIPTION
         });
         break;
     case 'MQTT':
         const MqttBroker = require('./MqttBroker');
         broker = new MqttBroker({
             gatewayRepliesTopic: process.env.GATEWAY_REPLIES_TOPIC,
+            gatewayEventsTopic: process.env.GATEWAY_EVENTS_TOPIC,
             projectId: process.env.GCLOUD_PROJECT_ID,
             mqttServerUrl: process.env.MQTT_SERVER_URL,
             replyTimeout: process.env.REPLY_TIMEOUT ||  2000

@@ -17,10 +17,20 @@ module.exports = {
     },
   },
   Subscription: {
-    authorAddedFiltered: {
+    authorEvent: {
       subscribe: withFilter((payload, variables, context, info) => {
-        context.webSocket.onUnSubscribe = Rx.Observable.of('ACTION RX STREAM WITH FILTER');
-        return pubsub.asyncIterator('authorAdded');
+        const subscription = broker.getEvent$(['authorEvent']).subscribe(
+          evt => pubsub.publish('authorEvent', { authorAdded: evt.data }),
+          (error) => console.error('Error listening authorEvent', error),
+          () => console.log('authorEvent listener STOPED :D')
+        );
+
+        context.webSocket.onUnSubscribe = Observable.create(function (observer) {
+          subscription.unsubscribe();
+          observer.next('rxjs subscription had been terminated');
+          observer.complete();
+        });
+        return pubsub.asyncIterator('authorEvent');
       },
         (payload, variables, context, info) => {
           return payload.authorAdded.lastName === variables.lastName;
