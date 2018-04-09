@@ -95,25 +95,34 @@ ws.listen(PORT, () => {
                 if (!encondedToken$) {
                     throw new Error('Missing auth token!');
                 }
+                //this is the default action to do when unsuscribing                
                 const authToken = await encondedToken$.map(
                     encondedToken => jsonwebtoken.verify(encondedToken, jwtPublicKey))
                     .toPromise()
                     .catch(error => console.error(`Failed to verify jwt token on WebSocket channel: ${error.message}`, error));
                 const encondedToken = await encondedToken$.toPromise()
                     .catch(error => console.error(`Failed to extract decoded jwt token on WebSocket channel: ${error.message}`, error));
-                return { broker, authToken, encondedToken };
+                return { broker, authToken, encondedToken, webSocket };
             },
             onDisconnect: (webSocket, connectionContext) => {
-                console.log(`GraphQL_WS.onDisconnect: origin=${connectionContext.request.headers.origin} url=${connectionContext.request.url}`);
+                if(webSocket.onUnSubscribe){
+                    webSocket.onUnSubscribe.subscribe(
+                        (evt) => console.log(`webSocket.onUnSubscribe: ${JSON.stringify({evt})};  origin=${connectionContext.request.headers.origin} url=${connectionContext.request.url};`),
+                        error => console.error(`GraphQL_WS.onDisconnect + onUnSubscribe; origin=${connectionContext.request.headers.origin} url=${connectionContext.request.url}; Error: ${error.message}`, error),
+                        () => console.log(`GraphQL_WS.onDisconnect + onUnSubscribe: Completed OK; origin=${connectionContext.request.headers.origin} url=${connectionContext.request.url};`)
+                    );
+                }else{
+                    console.log(`GraphQL_WS.onDisconnect; origin=${connectionContext.request.headers.origin} url=${connectionContext.request.url}; WARN: no onUnSubscribe callback found`);
+                }                
             },
             // DO NOT ACTIVATE: FOR SOME REASON THIS MESS UP WITH CHAIN AND DOES NOT INJECT THE ARG AND CONTEXT ON THE RESOLVER
             // onOperation: (message, params, webSocket) => {
             //     console.log(`GraphQL_WS.onOperation: ${JSON.stringify({ message, params })}`);
             //     return message;
             // },
-            // onOperationDone: webSocket => {
-            //     console.log(`GraphQL_WS.onOperationDone ${JSON.stringify({})}`);
-            // },            
+            onOperationDone: webSocket => {
+                console.log(`GraphQL_WS.onOperationDone ==================  ${Object.keys(webSocket)}`);
+            },
         },
         {
             server: ws,
