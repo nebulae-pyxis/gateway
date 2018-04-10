@@ -60,7 +60,7 @@ server.use(
         schema,
         context: {
             authToken: req.authToken,
-            encodedToken: req.headers['authorization'] ? req.headers['authorization'].replace('Bearer ', '') : undefined,
+            encodedToken: req.headers['authorization'] ? req.headers['authorization'].replace(/Bearer /i, '') : undefined,
             broker,
         },
     })));
