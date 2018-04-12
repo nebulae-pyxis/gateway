@@ -9,6 +9,7 @@ class MqttBroker {
     constructor({ gatewayRepliesTopic, mqttServerUrl, replyTimeout, gatewayEventsTopic }) {
         this.gatewayRepliesTopic = gatewayRepliesTopic;
         this.gatewayEventsTopic = gatewayEventsTopic;
+        this.materializedViewUpdates = 'MaterializedViewUpdates';
         this.mqttServerUrl = mqttServerUrl;
         this.senderId = uuidv4();
         this.replyTimeout = replyTimeout;
@@ -128,6 +129,7 @@ class MqttBroker {
         this.mqttClient.on('connect', function () {
             that.mqttClient.subscribe(`${that.gatewayRepliesTopic}`);
             that.mqttClient.subscribe(`${that.gatewayEventsTopic}`);
+            that.mqttClient.subscribe(`${that.materializedViewUpdates}`);
             console.log(`Mqtt client subscribed to ${that.gatewayRepliesTopic} and ${that.gatewayEventsTopic}`);
         });
 
