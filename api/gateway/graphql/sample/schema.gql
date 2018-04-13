@@ -2,6 +2,7 @@ type Author {
   id: String! # the ! means that every author object _must_ have an id
   firstName: String
   lastName: String
+  age: BigInt
 }
 
 type AuthorEvent {

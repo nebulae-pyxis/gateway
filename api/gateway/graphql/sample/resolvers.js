@@ -6,7 +6,7 @@ const Rx = require('rxjs');
 module.exports = {
   Query: {
     author(_, { firstName, lastName }, context, info) {
-      return { id: '1233', firstName, lastName };
+      return { id: '1233', firstName, lastName, age:  1523645197736};
     },
   },
   Mutation: {
