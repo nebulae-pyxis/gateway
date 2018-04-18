@@ -75,6 +75,32 @@ class PubSubBroker {
             .first();
     }
 
+    /**
+     * Returns an observable listen to events, and returns the entire message
+     * @param {array} types Message types to filter. if undefined means all types
+     * @param {number} timeout 
+     */
+    getEvents$(types, ignoreSelfEvents = true) {
+        return this.replies$
+            .filter(msg => msg)
+            .filter(msg => msg.topic === this.gatewayEventsTopic)
+            .filter(msg => types ? types.indexOf(msg.type) !== -1 : true)
+            .filter(msg => !ignoreSelfEvents || msg.attributes.senderId !== this.senderId);
+    }
+
+    /**
+     * Returns an observable listen to messages from MaterializedViewsUpdate topic.
+     * @param {array} types Message types to filter. if undefined means all types
+     * @param {number} timeout 
+     */
+    getMaterializedViewsUpdates$(types, ignoreSelfEvents = true) {
+        return this.replies$
+            .filter(msg => msg)
+            .filter(msg => msg.topic === this.materializedViewUpdates)
+            .filter(msg => types ? types.indexOf(msg.type) !== -1 : true)
+            .filter(msg => !ignoreSelfEvents || msg.attributes.senderId !== this.senderId);
+    }
+
 
 
     /**
