@@ -5,12 +5,14 @@ const uuidv4 = require('uuid/v4');
 
 class PubSubBroker {
 
-    constructor({ projectId, gatewayRepliesTopic, gatewayRepliesTopicSubscription,gatewayEventsTopic, gatewayEventsTopicSubscription, replyTimeOut }) {
+    constructor({ projectId, gatewayRepliesTopic, gatewayRepliesTopicSubscription, gatewayEventsTopic, gatewayEventsTopicSubscription, replyTimeOut, materializedViewTopic, materializedViewTopicSubscription }) {
         this.projectId = projectId
         this.gatewayRepliesTopic = gatewayRepliesTopic;
         this.gatewayRepliesTopicSubscription = gatewayRepliesTopicSubscription;
         this.gatewayEventsTopic = gatewayEventsTopic;
         this.gatewayEventsTopicSubscription = gatewayEventsTopicSubscription;
+        this.materializedViewTopic = materializedViewTopic;
+        this.materializedViewTopicSubscription = materializedViewTopicSubscription;
         this.replyTimeOut = replyTimeOut;
 
         /**
@@ -61,19 +63,63 @@ class PubSubBroker {
 
 
     /**
-     * Returns an observable that waits for the message response or throws an error if timeout is exceded
-     * @param {string} correlationId 
-     * @param {number} timeout 
-     */
-    getMessageReply$(correlationId, timeout = this.replyTimeOut, ignoreSelfEvents = true) {
+    * Returns an observable that waits for the message response or throws an error if timeout is exceded
+    * The observable extract the message.data and resolves to it
+    * @param {string} correlationId 
+    * @param {number} timeout 
+    */
+    getMessageReply$(correlationId, timeout = this.replyTimeout, ignoreSelfEvents = true) {
         return this.replies$
             .filter(msg => msg)
+            .filter(msg => msg.topic === this.gatewayRepliesTopic)
             .filter(msg => !ignoreSelfEvents || msg.attributes.senderId !== this.senderId)
-            .filter(msg => msg.correlationId === correlationId)
+            .filter(msg => msg && msg.correlationId === correlationId)
             .map(msg => msg.data)
             .timeout(timeout)
             .first();
     }
+
+    /**
+     * Returns an observable listen to events, and returns the entire message
+     * @param {array} types Message types to filter. if undefined means all types
+     * @param {number} timeout 
+     */
+    getEvents$(types, ignoreSelfEvents = true) {
+        return this.replies$
+            .filter(msg => msg)
+            .filter(msg => msg.topic === this.gatewayEventsTopic)
+            .filter(msg => types ? types.indexOf(msg.type) !== -1 : true)
+            .filter(msg => !ignoreSelfEvents || msg.attributes.senderId !== this.senderId)
+            ;
+    }
+
+    /**
+     * Publish data throught a topic
+     * Returns an Observable that resolves to the sent message ID
+     * @param {Topic} topicName 
+     * @param {string} type message(payload) type
+     * @param {Object} data 
+     * @param {Object} ops {correlationId, messageId} 
+     */
+    publish$(topicName, type, data, { correlationId, messageId } = {}) {
+        const dataBuffer = Buffer.from(JSON.stringify(data));
+        return this, this.getTopic$(topicName)
+            .mergeMap(topic => Rx.Observable.fromPromise(
+                topicName.publisher().publish(dataBuffer,
+                    {
+                        senderId: this.senderId,
+                        correlationId,
+                        type,
+                        replyTo: this.gatewayRepliesTopic
+                    })))
+            //.do(messageId => console.log(`Message published through ${topic.name}, MessageId=${messageId}`))
+            ;
+    }
+
+
+
+
+
 
 
 
@@ -119,26 +165,7 @@ class PubSubBroker {
             });
     }
 
-    /**
-     * Publish data throught a topic
-     * Returns an Observable that resolves to the sent message ID
-     * @param {Topic} topic 
-     * @param {string} type message(payload) type
-     * @param {Object} data 
-     * @param {Object} ops {correlationId, messageId} 
-     */
-    publish$(topic, type, data, { correlationId, messageId } = {}) {
-        const dataBuffer = Buffer.from(JSON.stringify(data));
-        return Rx.Observable.fromPromise(
-            topic.publisher().publish(dataBuffer,
-                {
-                    senderId: this.senderId,
-                    correlationId,
-                    type
-                }))
-            //.do(messageId => console.log(`Message published through ${topic.name}, MessageId=${messageId}`))
-            ;
-    }
+
 
     /**
      * Returns an Observable that resolves to the subscription
@@ -147,23 +174,34 @@ class PubSubBroker {
      */
     getSubscription$(topicName, subscriptionName) {
         return this.getTopic$(topicName)
-            .switchMap(topic => Rx.Observable.fromPromise(
+            .mergeMap(topic => Rx.Observable.fromPromise(
                 topic.subscription(subscriptionName)
                     .get({ autoCreate: true }))
-            ).map(results => results[0]);
+            ).map(results => {
+                return {
+                    subscription: results[0],
+                    topicName,
+                    subscriptionName
+                };
+            });
     }
 
     /**
      * Starts to listen messages
      */
     startMessageListener() {
-        this.getSubscription$(this.gatewayRepliesTopic, this.gatewayRepliesTopicSubscription)
+        this.Observable.from([
+            { topicName: this.gatewayRepliesTopic, topicSubscriptionName: this.gatewayRepliesTopicSubscription },
+            { topicName: this.gatewayEventsTopic, topicSubscriptionName: this.gatewayEventsTopicSubscription },
+            { topicName: this.materializedViewTopic, topicSubscriptionName: this.materializedViewTopicSubscription },])
+            .mergeMap(({ topicName, topicSubscriptionName }) => this.getSubscription$(topicName, topicSubscriptionName))
             .subscribe(
-                (pubSubSubscription) => {
-                    pubSubSubscription.on(`message`, message => {
+                ({ subscription, topicName, subscriptionName }) => {
+                    subscription.on(`message`, message => {
                         //console.log(`Received message ${message.id}:`);
                         this.replies$.next(
                             {
+                                topic: topicName,
                                 id: message.id,
                                 type: message.attributes.type,
                                 data: JSON.parse(message.data),
@@ -173,9 +211,10 @@ class PubSubBroker {
                         );
                         message.ack();
                     });
+                    console.log(`PubSubBroker is listening to ${topicName} under the subscription ${topicSubscriptionName}`);
                 },
                 (err) => {
-                    console.error('Failed to obtain GatewayReplies subscription', err);
+                    console.error(`Failed to obtain subscription for ${topicName} under the subscription ${topicSubscriptionName}`, err);
                 },
                 () => {
                     //console.log('GatewayReplies listener has completed!');
@@ -188,7 +227,7 @@ class PubSubBroker {
      */
     disconnectBroker() {
         this.getSubscription$(this.gatewayRepliesTopic, this.gatewayRepliesTopicSubscription).subscribe(
-            (subscription) => subscription.removeListener(`message`),
+            ({ topicName, topicSubscriptionName }) => subscription.removeListener(`message`),
             (error) => console.error(`Error disconnecting Broker`, error),
             () => console.log('Broker disconnected')
         );
