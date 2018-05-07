@@ -1,7 +1,6 @@
-FROM node:9.8.0-alpine
+FROM node:9.11.1
 USER node
 COPY gateway /nebulae/tpm/gateway
 WORKDIR /nebulae/tpm/gateway
 RUN npm install --prod
-RUN sudo npm rebuild
 CMD [ "npm","start" ]
