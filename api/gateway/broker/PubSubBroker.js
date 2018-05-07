@@ -199,7 +199,7 @@ class PubSubBroker {
      * Starts to listen messages
      */
     startMessageListener() {
-        this.Observable.from([
+        Rx.Observable.from([
             { topicName: this.gatewayRepliesTopic, topicSubscriptionName: this.gatewayRepliesTopicSubscription },
             { topicName: this.gatewayEventsTopic, topicSubscriptionName: this.gatewayEventsTopicSubscription },
             { topicName: this.materializedViewTopic, topicSubscriptionName: this.materializedViewTopicSubscription },])
