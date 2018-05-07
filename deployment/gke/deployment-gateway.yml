@@ -40,7 +40,7 @@ spec:
           value: production
         # GRAPHQL CONGIF      
         - name: GRAPHQL_END_POINT_PORT
-          value: 3000
+          value: '3000'
         - name: GRAPHQL_END_POINT_HOST
           value: localhost
         - name: GRAPHQL_HTTP_END_POINT
@@ -69,7 +69,7 @@ spec:
         - name: GATEWAY_MATERIALIZED_VIEW_UPDATES_TOPIC_SUBSCRIPTION
           value: materialized-view-updates-gateway
         - name: REPLY_TIMEOUT
-          value: 2000
+          value: '2000'
         # JWT CONGIF        
         - name: JWT_PUBLIC_KEY
           value: -----BEGIN PUBLIC KEY-----\nMIIBIjANBgkqhkiG9w0BAQEFAAOCAQ8AMIIBCgKCAQEArdoGFIsq/MyL3DAtpuWxg/mMvpZ81+R64TUn4JWulAbN76q5M0eXRGTkxw6Hu1odji0o++R/NjvO9IMwcgVfhMqq9zhkIITj2M/AnKyT+qg56tquRi1pEli1lpNtQl+PB38AKSbALNA0fCVq+LV03OwgYlyimZbYHmsKBmoojJBqsG0hpsthXDhQPhdTYS+3K0InhLZADK4IRQISLTh/xcShPouOCi1CzOtx3fLnw3WPbGumYXuMtwnvhPbyfKZT9Z60/1489WEs2zcXlcQJjoryFkNzztmfOVTg/Ajodt7GPksbBw2SnUkwg2jJrovdsfpyDzgQnGOw2fbBcT4CsQIDAQAB\n-----END PUBLIC KEY-----          
