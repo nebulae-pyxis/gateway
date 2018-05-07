@@ -220,10 +220,10 @@ class PubSubBroker {
                         );
                         message.ack();
                     });
-                    console.log(`PubSubBroker is listening to ${topicName} under the subscription ${topicSubscriptionName}`);
+                    console.log(`PubSubBroker is listening to ${topicName} under the subscription ${subscriptionName}`);
                 },
                 (err) => {
-                    console.error(`Failed to obtain subscription for ${topicName} under the subscription ${topicSubscriptionName}`, err);
+                    console.error(`Failed to obtain subscription `, err);
                 },
                 () => {
                     //console.log('GatewayReplies listener has completed!');
