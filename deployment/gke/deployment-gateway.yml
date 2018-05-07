@@ -10,7 +10,7 @@ spec:
   - port: 80
     targetPort: 80
     protocol: TCP
-    name: http/ws
+    name: http-ws
   selector:
     run: api-gateway
 ---
