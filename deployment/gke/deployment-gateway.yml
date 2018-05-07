@@ -34,7 +34,7 @@ spec:
         image: nebulaetpm/gateway:0.0.4
         imagePullPolicy: Always
         ports:
-        - containerPort: 80
+        - containerPort: 3000
         env:
         - name: NODE_ENV
           value: production
