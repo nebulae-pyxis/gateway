@@ -146,11 +146,16 @@ class PubSubBroker {
      */
     getTopic$(topicName) {
         //Tries to get a cached topic
+        console.log("TopicName #1 -> ", topicName);
         const cachedTopic = this.verifiedTopics[topicName];
+        console.log("cachedTopic #2 -> ", cachedTopic);
         if (!cachedTopic) {
+            console.log("cachedTopic not exist #3 -> ", cachedTopic);
             //if not cached, then tries to know if the topic exists
             const topic = this.pubsubClient.topic(topicName);
+            console.log("Topic #4 -> ", topic);
             return Rx.Observable.fromPromise(topic.exists())
+                .do(data => console.log("Data #4 " + data))
                 .map(data => data[0])
                 .switchMap(exists => {
                     console.log('getTopic1...$ => ', exists);
