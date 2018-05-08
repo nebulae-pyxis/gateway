@@ -153,7 +153,7 @@ class PubSubBroker {
             return Rx.Observable.fromPromise(topic.exists())
                 .map(data => data[0])
                 .switchMap(exists => {
-                    conosle.log('getTopic1$ => ', exists);
+                    console.log('getTopic1$ => ', exists);
                     if (exists) {
                         //if it does exists, then store it on the cache and return it
                         this.verifiedTopics[topicName] = topic;
