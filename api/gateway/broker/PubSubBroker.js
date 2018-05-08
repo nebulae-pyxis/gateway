@@ -120,7 +120,7 @@ class PubSubBroker {
                             replyTo: this.gatewayRepliesTopic
                         }));
             })
-            .do(messageId => console.log(`Message published through ${topic.name}, MessageId=${messageId}`))
+            .do(messageId => console.log(`Message published through ${topicName.name}, MessageId=${messageId}`))
             ;
     }
 
