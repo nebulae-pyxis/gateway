@@ -107,12 +107,12 @@ class PubSubBroker {
         console.log("Publish$ => ", data);
         const dataBuffer = Buffer.from(JSON.stringify(data));
         console.log('dataBuffer1 ');
-        return this.getTopic$(topicName)
+        return this.getTopic$(topicName.name)
             .do(val => console.log('-- VAL ', val))
             .mergeMap(topic => {
                 console.log("******* topic: ", topic);
                 return Rx.Observable.fromPromise(
-                    topic.publisher().publish(dataBuffer,
+                    topicName.publisher().publish(dataBuffer,
                         {
                             senderId: this.senderId,
                             correlationId,
