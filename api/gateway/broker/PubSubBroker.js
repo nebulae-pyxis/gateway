@@ -106,6 +106,7 @@ class PubSubBroker {
     publish$(topicName, type, data, { correlationId, messageId } = {}) {
         console.log("Publish$ => ", data);
         const dataBuffer = Buffer.from(JSON.stringify(data));
+        console.log('dataBuffer ', dataBuffer);
         return this.getTopic$(topicName)
             .do(val => console.log('-- VAL ', val))
             .mergeMap(topic => {
@@ -119,7 +120,7 @@ class PubSubBroker {
                             replyTo: this.gatewayRepliesTopic
                         }));
             })
-            //.do(messageId => console.log(`Message published through ${topic.name}, MessageId=${messageId}`))
+            .do(messageId => console.log(`Message published through ${topic.name}, MessageId=${messageId}`))
             ;
     }
 
@@ -152,19 +153,23 @@ class PubSubBroker {
             return Rx.Observable.fromPromise(topic.exists())
                 .map(data => data[0])
                 .switchMap(exists => {
+                    conosle.log('getTopic1$ => ', exists);
                     if (exists) {
                         //if it does exists, then store it on the cache and return it
                         this.verifiedTopics[topicName] = topic;
                         console.log(`Topic ${topicName} already existed and has been set into the cache`);
+                        conosle.log('getTopic2$ => ', topic);
                         return Rx.Observable.of(topic);
                     } else {
                         //if it does NOT exists, then create it, store it in the cache and return it
+                        conosle.log('getTopic3$ => ', topicName);
                         return this.createTopic$(topicName);
                     }
                 })
                 ;
         }
         //return cached topic
+        conosle.log('getTopic4$ => ', cachedTopic);
         return Rx.Observable.of(cachedTopic);
     }
 
