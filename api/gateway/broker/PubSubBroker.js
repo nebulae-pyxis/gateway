@@ -42,6 +42,7 @@ class PubSubBroker {
      */
     forward$(topic, type, payload, ops = {}) {
         return this.getTopic$(topic)
+            .do(topic => console.log("topic found => ", topic)) 
             .switchMap(topic => this.publish$(topic, type, payload, ops))
     }
 
@@ -58,7 +59,7 @@ class PubSubBroker {
      */
     forwardAndGetReply$(topic, type, payload, timeout = this.replyTimeout, ignoreSelfEvents = true, ops) {
         console.log('forwardAndGetReply -> ', topic);
-        return this.forward$(topic, type, payload, ops)
+        return this.forward$(topic, type, payload, ops)       
             .switchMap((messageId) => this.getMessageReply$(messageId, timeout, ignoreSelfEvents))
     }
 
@@ -103,6 +104,7 @@ class PubSubBroker {
      * @param {Object} ops {correlationId, messageId} 
      */
     publish$(topicName, type, data, { correlationId, messageId } = {}) {
+        console.log("Publish$ => ", data);
         const dataBuffer = Buffer.from(JSON.stringify(data));
         return this, this.getTopic$(topicName)
             .mergeMap(topic => {
