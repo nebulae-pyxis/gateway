@@ -57,6 +57,7 @@ class PubSubBroker {
      * Returns an Observable that resolves the message response
      */
     forwardAndGetReply$(topic, type, payload, timeout = this.replyTimeout, ignoreSelfEvents = true, ops) {
+        console.log('forwardAndGetReply -> ', topic);
         return this.forward$(topic, type, payload, ops)
             .switchMap((messageId) => this.getMessageReply$(messageId, timeout, ignoreSelfEvents))
     }
@@ -104,14 +105,17 @@ class PubSubBroker {
     publish$(topicName, type, data, { correlationId, messageId } = {}) {
         const dataBuffer = Buffer.from(JSON.stringify(data));
         return this, this.getTopic$(topicName)
-            .mergeMap(topic => Rx.Observable.fromPromise(
-                topicName.publisher().publish(dataBuffer,
-                    {
-                        senderId: this.senderId,
-                        correlationId,
-                        type,
-                        replyTo: this.gatewayRepliesTopic
-                    })))
+            .mergeMap(topic => {
+                console.log("******* topic: ", topic);
+                return Rx.Observable.fromPromise(
+                    topic.publisher().publish(dataBuffer,
+                        {
+                            senderId: this.senderId,
+                            correlationId,
+                            type,
+                            replyTo: this.gatewayRepliesTopic
+                        }));
+            })
             //.do(messageId => console.log(`Message published through ${topic.name}, MessageId=${messageId}`))
             ;
     }
