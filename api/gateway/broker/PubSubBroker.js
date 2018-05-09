@@ -57,7 +57,6 @@ class PubSubBroker {
      * Returns an Observable that resolves the message response
      */
     forwardAndGetReply$(topic, type, payload, timeout = this.replyTimeout, ignoreSelfEvents = true, ops) {
-        console.log('forwardAndGetReply -> ', topic);
         return this.forward$(topic, type, payload, ops)       
             .switchMap((messageId) => this.getMessageReply$(messageId, timeout, ignoreSelfEvents))
     }
@@ -163,7 +162,6 @@ class PubSubBroker {
                 ;
         }
         //return cached topic
-        console.log('getTopic4$ => ', cachedTopic);
         return Rx.Observable.of(cachedTopic);
     }
 
@@ -189,10 +187,12 @@ class PubSubBroker {
      */
     getSubscription$(topicName, subscriptionName) {
         return this.getTopic$(topicName)
+            .do(val => console.log("Subscription", val))
             .mergeMap(topic => Rx.Observable.fromPromise(
                 topic.subscription(subscriptionName)
                     .get({ autoCreate: true }))
             ).map(results => {
+                console.log("Subscription map", results)
                 return {
                     subscription: results[0],
                     topicName,
