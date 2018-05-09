@@ -72,6 +72,7 @@ class PubSubBroker {
     getMessageReply$(correlationId, timeout = this.replyTimeout, ignoreSelfEvents = true) {
         return this.replies$
             .filter(msg => msg)
+            .do(val => console.log('getMessageReply ==> ', correlationId, timeout))
             .filter(msg => msg.topic === this.gatewayRepliesTopic)
             .filter(msg => !ignoreSelfEvents || msg.attributes.senderId !== this.senderId)
             .filter(msg => msg && msg.correlationId === correlationId)
@@ -142,28 +143,20 @@ class PubSubBroker {
      */
     getTopic$(topicName) {
         //Tries to get a cached topic
-        console.log("TopicName #1 -> ", topicName);
         const cachedTopic = this.verifiedTopics[topicName];
-        console.log("cachedTopic #2 -> ", cachedTopic);
         if (!cachedTopic) {
-            console.log("cachedTopic not exist #3 -> ", cachedTopic);
             //if not cached, then tries to know if the topic exists
             const topic = this.pubsubClient.topic(topicName);
-            console.log("Topic #4 -> ", topic);
             return Rx.Observable.fromPromise(topic.exists())
-                .do(data => console.log("Data #4 " + data))
                 .map(data => data[0])
                 .switchMap(exists => {
-                    console.log('getTopic1...$ => ', exists);
                     if (exists) {
                         //if it does exists, then store it on the cache and return it
                         this.verifiedTopics[topicName] = topic;
                         console.log(`Topic ${topicName} already existed and has been set into the cache`);
-                        console.log('getTopic2$ => ', topic);
                         return Rx.Observable.of(topic);
                     } else {
                         //if it does NOT exists, then create it, store it in the cache and return it
-                        console.log('getTopic3$ => ', topicName);
                         return this.createTopic$(topicName);
                     }
                 })
@@ -220,7 +213,7 @@ class PubSubBroker {
             .subscribe(
                 ({ subscription, topicName, subscriptionName }) => {
                     subscription.on(`message`, message => {
-                        //console.log(`Received message ${message.id}:`);
+                        console.log('Received message', message);
                         this.replies$.next(
                             {
                                 topic: topicName,
