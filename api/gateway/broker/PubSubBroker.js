@@ -43,7 +43,7 @@ class PubSubBroker {
     forward$(topic, type, payload, ops = {}) {
         return this.getTopic$(topic)
             .switchMap(topic => this.publish$(topic.name, type, payload, ops))
-            //.do(val => console.log('after publish ==> ', val))
+            .do(val => console.log('after publish ==> ', val))
     }
 
     /**
@@ -59,8 +59,7 @@ class PubSubBroker {
      */
     forwardAndGetReply$(topic, type, payload, timeout = this.replyTimeout, ignoreSelfEvents = true, ops) {
         return this.forward$(topic, type, payload, ops)       
-            .switchMap((messageId) => this.getMessageReply$(messageId, timeout, ignoreSelfEvents))
-            //.do(val => console.log('Forward response => ', val));
+            .switchMap((messageId) => this.getMessageReply$(messageId, timeout, ignoreSelfEvents));
     }
 
 
@@ -122,7 +121,7 @@ class PubSubBroker {
                             replyTo: this.gatewayRepliesTopic
                         }));
             })
-            .do(messageId => console.log(`Message published through ${topicName}, MessageId=${messageId}`))
+            //.do(messageId => console.log(`Message published through ${topicName}, MessageId=${messageId}`))
             ;
     }
 
