@@ -69,6 +69,7 @@ class PubSubBroker {
     * @param {number} timeout 
     */
     getMessageReply$(correlationId, timeout = this.replyTimeout, ignoreSelfEvents = true) {
+        console.log('call getMessageReply$ method');
         return this.replies$
             .filter(msg => msg)
             .do(val => console.log('getMessageReply ==> ', correlationId, timeout))
@@ -120,7 +121,7 @@ class PubSubBroker {
                             replyTo: this.gatewayRepliesTopic
                         }));
             })
-            //.do(messageId => console.log(`Message published through ${topicName}, MessageId=${messageId}`))
+            .do(messageId => console.log(`Message published through ${topicName}, MessageId=${messageId}`))
             ;
     }
 
