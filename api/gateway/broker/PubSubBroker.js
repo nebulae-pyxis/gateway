@@ -69,7 +69,6 @@ class PubSubBroker {
     * @param {number} timeout 
     */
     getMessageReply$(correlationId, timeout = this.replyTimeout, ignoreSelfEvents = true) {
-        console.log('call getMessageReply$ method');
         return this.replies$
             .do(val => console.log('this.replies$'))
             .filter(msg => msg)
