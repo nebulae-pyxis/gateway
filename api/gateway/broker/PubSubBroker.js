@@ -73,9 +73,13 @@ class PubSubBroker {
             .filter(msg => msg)
             .do(val => console.log('getMessageReply ==> ', correlationId, timeout))
             .filter(msg => msg.topic === this.gatewayRepliesTopic)
+            .do(val => console.log('Topic111 ==> ', val))
             .filter(msg => !ignoreSelfEvents || msg.attributes.senderId !== this.senderId)
+            .do(val => console.log('this.senderId ==> ', this.senderId))
             .filter(msg => msg && msg.correlationId === correlationId)
+            .do(val => console.log('this.senderId ==> ', msg.correlationId))
             .map(msg => msg.data)
+            .do(val => console.log('msg.data ==> ', msg.data))
             .timeout(timeout)
             .first();
     }
