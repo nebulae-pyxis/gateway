@@ -81,8 +81,8 @@ class PubSubBroker {
             .filter(msg => msg && msg.correlationId === correlationId)
             .map(msg => msg.data)
             .do(msg => console.log('msg.data ==> ', msg.data))
-            .timeout(1000)
-            .do(msg => console.log('timeout ==> ', msg))
+            .timeout(timeout)
+            .do(msg => console.log('timeout ==> ', timeout))
             .first();
     }
 
