@@ -77,9 +77,9 @@ class PubSubBroker {
             .filter(msg => !ignoreSelfEvents || msg.attributes.senderId !== this.senderId)
             .do(val => console.log('this.senderId ==> ', this.senderId))
             .filter(msg => msg && msg.correlationId === correlationId)
-            .do(val => console.log('this.senderId ==> ', msg.correlationId))
+            .do(msg => console.log('this.correlationId ==> ', msg.correlationId))
             .map(msg => msg.data)
-            .do(val => console.log('msg.data ==> ', msg.data))
+            .do(msg => console.log('msg.data ==> ', msg.data))
             .timeout(timeout)
             .first();
     }
@@ -191,12 +191,10 @@ class PubSubBroker {
      */
     getSubscription$(topicName, subscriptionName) {
         return this.getTopic$(topicName)
-            .do(val => console.log("Subscription", val))
             .mergeMap(topic => Rx.Observable.fromPromise(
                 topic.subscription(subscriptionName)
                     .get({ autoCreate: true }))
             ).map(results => {
-                console.log("Subscription map", results)
                 return {
                     subscription: results[0],
                     topicName,
