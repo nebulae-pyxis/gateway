@@ -43,7 +43,7 @@ class PubSubBroker {
     forward$(topic, type, payload, ops = {}) {
         return this.getTopic$(topic)
             .switchMap(topic => this.publish$(topic.name, type, payload, ops))
-            .do(val => console.log('after publish ==> ', val))
+            //.do(val => console.log('after publish ==> ', val))
     }
 
     /**
