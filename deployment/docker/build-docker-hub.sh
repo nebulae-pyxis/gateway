@@ -1,6 +1,6 @@
 #!/bin/bash
 export DOCKERHUB_IMAGE=gateway
-export DOCKERHUB_TAG=0.0.21
+export DOCKERHUB_TAG=0.0.22
 
 rm -rf deployment/docker/gateway/
 cp -R $API_SHELL_PATH/gateway deployment/docker/gateway
