@@ -42,8 +42,7 @@ class PubSubBroker {
      */
     forward$(topic, type, payload, ops = {}) {
         return this.getTopic$(topic)
-            .switchMap(topic => this.publish$(topic.name, type, payload, ops))
-            .do(val => console.log('after publish ==> ', val))
+            .switchMap(topic => this.publish$(topic.name, type, payload, ops));
     }
 
     /**
@@ -74,14 +73,11 @@ class PubSubBroker {
         return this.replies$
             .do(val => console.log('this.replies$'))
             .filter(msg => msg)
-            .do(val => console.log('getMessageReply2 ==> ', correlationId, timeout))
             .filter(msg => msg.topic === this.gatewayRepliesTopic)
             .filter(msg => !ignoreSelfEvents || msg.attributes.senderId !== this.senderId)
             .filter(msg => msg && msg.correlationId === correlationId)
             .map(msg => msg.data)
-            .do(msg => console.log('msg.data ==> ', msg.data))
             .timeout(timeout)
-            .do(msg => console.log('timeout ==> ', timeout))
             .first();
     }
 
