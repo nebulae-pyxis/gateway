@@ -130,8 +130,8 @@ class PubSubBroker {
         return this.replies$
             .do(msg => console.log('MSG1 ==> ', types, msg))
             .filter(msg => msg)
-            .do(msg => console.log('MSG2 ==> ', this.materializedViewUpdates))
-            .filter(msg => msg.topic === this.materializedViewUpdates)
+            .do(msg => console.log('MSG2 ==> ', this.materializedViewTopic))
+            .filter(msg => msg.topic === this.materializedViewTopic)
             .do(msg => console.log('MSG3 ==> '))
             .filter(msg => types ? types.indexOf(msg.type) !== -1 : true)
             .do(msg => console.log('MSG4 ==> '))
