@@ -126,6 +126,7 @@ class PubSubBroker {
      * @param {number} timeout 
      */
     getMaterializedViewsUpdates$(types, ignoreSelfEvents = true) {
+        console.log('getMaterializedViewsUpdates$1 ', types);
         return this.replies$
             .do(msg => console.log('MSG1 ==> ', types, msg))
             .filter(msg => msg)
