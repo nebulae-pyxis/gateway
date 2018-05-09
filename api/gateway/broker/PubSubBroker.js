@@ -42,8 +42,7 @@ class PubSubBroker {
      */
     forward$(topic, type, payload, ops = {}) {
         return this.getTopic$(topic)
-            .do(topic => console.log("topic found => ", topic)) 
-            .switchMap(topic => this.publish$(topic, type, payload, ops))
+            .switchMap(topic => this.publish$(topic.name, type, payload, ops))
     }
 
     /**
@@ -104,15 +103,12 @@ class PubSubBroker {
      * @param {Object} ops {correlationId, messageId} 
      */
     publish$(topicName, type, data, { correlationId, messageId } = {}) {
-        console.log("Publish$ => ", data);
+        console.log('this.gatewayRepliesTopic => ', this.gatewayRepliesTopic);
         const dataBuffer = Buffer.from(JSON.stringify(data));
-        console.log('dataBuffer1 ');
-        return this.getTopic$(topicName.name)
-            .do(val => console.log('-- VAL ', val))
+        return this.getTopic$(topicName)
             .mergeMap(topic => {
-                console.log("******* topic: ", topic);
                 return Rx.Observable.fromPromise(
-                    topicName.publisher().publish(dataBuffer,
+                    topic.publisher().publish(dataBuffer,
                         {
                             senderId: this.senderId,
                             correlationId,
@@ -120,7 +116,7 @@ class PubSubBroker {
                             replyTo: this.gatewayRepliesTopic
                         }));
             })
-            .do(messageId => console.log(`Message published through ${topicName.name}, MessageId=${messageId}`))
+            //.do(messageId => console.log(`Message published through ${topicName}, MessageId=${messageId}`))
             ;
     }
 
