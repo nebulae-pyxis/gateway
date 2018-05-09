@@ -104,7 +104,6 @@ class PubSubBroker {
      * @param {Object} ops {correlationId, messageId} 
      */
     publish$(topicName, type, data, { correlationId, messageId } = {}) {
-        console.log('this.gatewayRepliesTopic => ', this.gatewayRepliesTopic);
         const dataBuffer = Buffer.from(JSON.stringify(data));
         return this.getTopic$(topicName)
             .mergeMap(topic => {
