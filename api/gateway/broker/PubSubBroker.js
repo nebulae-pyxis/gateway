@@ -60,7 +60,7 @@ class PubSubBroker {
     forwardAndGetReply$(topic, type, payload, timeout = this.replyTimeout, ignoreSelfEvents = true, ops) {
         return this.forward$(topic, type, payload, ops)       
             .switchMap((messageId) => this.getMessageReply$(messageId, timeout, ignoreSelfEvents))
-            .do(val => console.log('Forward response => ', val));
+            //.do(val => console.log('Forward response => ', val));
     }
 
 
@@ -77,11 +77,8 @@ class PubSubBroker {
             .filter(msg => msg)
             .do(val => console.log('getMessageReply2 ==> ', correlationId, timeout))
             .filter(msg => msg.topic === this.gatewayRepliesTopic)
-            .do(val => console.log('Topic111 ==> ', val))
             .filter(msg => !ignoreSelfEvents || msg.attributes.senderId !== this.senderId)
-            .do(val => console.log('this.senderId ==> ', this.senderId))
             .filter(msg => msg && msg.correlationId === correlationId)
-            .do(msg => console.log('this.correlationId ==> ', msg.correlationId))
             .map(msg => msg.data)
             .do(msg => console.log('msg.data ==> ', msg.data))
             .timeout(8000)
