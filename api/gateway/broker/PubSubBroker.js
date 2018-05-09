@@ -185,11 +185,14 @@ class PubSubBroker {
      * @param {string} subscriptionName 
      */
     getSubscription$(topicName, subscriptionName) {
+        console.log('getSubscription$ ==> 1');
         return this.getTopic$(topicName)
+            .do(topic => console.log('getTopic => ', topic.name))
             .mergeMap(topic => Rx.Observable.fromPromise(
                 topic.subscription(subscriptionName)
                     .get({ autoCreate: true }))
             ).map(results => {
+                console.log('getSubscription$ result ==> ', results);
                 return {
                     subscription: results[0],
                     topicName,
@@ -210,7 +213,7 @@ class PubSubBroker {
             .subscribe(
                 ({ subscription, topicName, subscriptionName }) => {
                     subscription.on(`message`, message => {
-                        console.log('Received message', message);
+                        console.log('Received message', subscriptionName, topicName, JSON.parse(message.data));
                         this.replies$.next(
                             {
                                 topic: topicName,
