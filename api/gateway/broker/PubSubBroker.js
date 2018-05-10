@@ -220,7 +220,7 @@ class PubSubBroker {
             .subscribe(
                 ({ subscription, topicName, subscriptionName }) => {
                     subscription.on(`message`, message => {
-                        console.log('Received message', subscriptionName, topicName, JSON.parse(message.data), message.attributes.correlationId);
+                        console.log('Received message', subscriptionName, topicName, message.attributes.correlationId, JSON.parse(message.data));
                         this.replies$.next(
                             {
                                 topic: topicName,
