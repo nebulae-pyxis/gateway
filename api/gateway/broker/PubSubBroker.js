@@ -228,6 +228,7 @@ class PubSubBroker {
                             }
                         );
                         message.ack();
+                        console.log('****** ACK MESSAGE ', message.attributes.correlationId);
                     });
                     console.log(`PubSubBroker is listening to ${topicName} under the subscription ${subscriptionName}`);
                 },
