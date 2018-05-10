@@ -57,6 +57,7 @@ class PubSubBroker {
      * Returns an Observable that resolves the message response
      */
     forwardAndGetReply$(topic, type, payload, timeout = this.replyTimeout, ignoreSelfEvents = true, ops) {
+        console.log('forwardAndGetReply$ ---> ', new Date());
         return this.forward$(topic, type, payload, ops)       
             .switchMap((messageId) => this.getMessageReply$(messageId, timeout, ignoreSelfEvents));
     }
@@ -70,10 +71,10 @@ class PubSubBroker {
     */
     getMessageReply$(correlationId, timeout = this.replyTimeout, ignoreSelfEvents = true) {
         return this.replies$
-            .do(val => console.log('this.replies$'))
             .filter(msg => msg)
             .filter(msg => msg.topic === this.gatewayRepliesTopic)
             .filter(msg => !ignoreSelfEvents || msg.attributes.senderId !== this.senderId)
+            .do(msg => console.log("msg.correlationId => ",msg.correlationId, " Correlation => ", correlationId))
             .filter(msg => msg && msg.correlationId === correlationId)
             .map(msg => msg.data)
             .timeout(timeout)
@@ -219,7 +220,7 @@ class PubSubBroker {
             .subscribe(
                 ({ subscription, topicName, subscriptionName }) => {
                     subscription.on(`message`, message => {
-                        console.log('Received message', subscriptionName, topicName, JSON.parse(message.data));
+                        console.log('Received message', subscriptionName, topicName, JSON.parse(message.data), message.attributes.correlationId);
                         this.replies$.next(
                             {
                                 topic: topicName,
