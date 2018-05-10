@@ -18,7 +18,7 @@ class PubSubBroker {
         /**
          * Rx Subject for every message reply
          */
-        this.replies$ = new Rx.BehaviorSubject();
+        this.replies$ = new Rx.Subject();
         this.senderId = uuidv4();
         /**
          * Map of verified topics
@@ -77,7 +77,7 @@ class PubSubBroker {
             .do(msg => console.log("msg.correlationId => ",msg.correlationId, " Correlation => ", correlationId))
             .filter(msg => msg && msg.correlationId === correlationId)
             .map(msg => msg.data)
-            .timeout(1000)
+            .timeout(500)
             .first();
     }
 
