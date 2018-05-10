@@ -130,15 +130,10 @@ class PubSubBroker {
     getMaterializedViewsUpdates$(types, ignoreSelfEvents = true) {
         console.log('getMaterializedViewsUpdates$1 ', types);
         return this.replies$
-            .do(msg => console.log('MSG1 ==> ', types, msg))
             .filter(msg => msg)
-            .do(msg => console.log('MSG2. ==> ', this.materializedViewTopic))
             .filter(msg => msg.topic === this.materializedViewTopic)
-            .do(msg => console.log('MSG3 ==> '))
             .filter(msg => types ? types.indexOf(msg.type) !== -1 : true)
-            .do(msg => console.log('MSG4 ==> '))
-            .filter(msg => !ignoreSelfEvents || msg.attributes.senderId !== this.senderId)
-            .do(msg => console.log('MSG5 ==> '));
+            .filter(msg => !ignoreSelfEvents || msg.attributes.senderId !== this.senderId);
     }
 
 
