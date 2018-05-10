@@ -93,7 +93,7 @@ class MqttBroker {
     getMaterializedViewsUpdates$(types, ignoreSelfEvents = true) {
         return this.replies$
             .filter(msg => msg)
-            .filter(msg => msg.topic === this.materializedViewUpdates)
+            .filter(msg => msg.topic === this.materializedViewTopic)
             .filter(msg => types ? types.indexOf(msg.type) !== -1 : true)
             .filter(msg => !ignoreSelfEvents || msg.attributes.senderId !== this.senderId);
     }
