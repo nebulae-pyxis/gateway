@@ -77,7 +77,7 @@ class PubSubBroker {
             .do(msg => console.log("msg.correlationId => ",msg.correlationId, " Correlation => ", correlationId))
             .filter(msg => msg && msg.correlationId === correlationId)
             .map(msg => msg.data)
-            .timeout(timeout)
+            .timeout(1000)
             .first();
     }
 
@@ -105,6 +105,7 @@ class PubSubBroker {
      */
     publish$(topicName, type, data, { correlationId, messageId } = {}) {
         const dataBuffer = Buffer.from(JSON.stringify(data));
+
         return this.getTopic$(topicName)
             .mergeMap(topic => {
                 return Rx.Observable.fromPromise(
