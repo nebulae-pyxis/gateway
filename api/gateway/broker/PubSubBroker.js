@@ -70,14 +70,16 @@ class PubSubBroker {
     * @param {number} timeout 
     */
     getMessageReply$(correlationId, timeout = this.replyTimeout, ignoreSelfEvents = true) {
+        console.log('getMessageReply$ => data: ', new Date());
         return this.replies$
+            .do('getMessageReply ***')
             .filter(msg => msg)
             .filter(msg => msg.topic === this.gatewayRepliesTopic)
             .filter(msg => !ignoreSelfEvents || msg.attributes.senderId !== this.senderId)
             .do(msg => console.log("msg.correlationId => ",msg.correlationId, " Correlation => ", correlationId))
             .filter(msg => msg && msg.correlationId === correlationId)
             .map(msg => msg.data)
-            .timeout(1000)
+            .timeout(500)
             .first();
     }
 
@@ -216,7 +218,7 @@ class PubSubBroker {
             .subscribe(
                 ({ subscription, topicName, subscriptionName }) => {
                     subscription.on(`message`, message => {
-                        console.log('Received message', subscriptionName, topicName, message.attributes.correlationId, JSON.parse(message.data));
+                        console.log('Received message', new Date(), topicName, message.attributes.correlationId, JSON.parse(message.data));
                         this.replies$.next(
                             {
                                 topic: topicName,
