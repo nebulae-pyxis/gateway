@@ -72,7 +72,7 @@ class PubSubBroker {
     getMessageReply$(correlationId, timeout = this.replyTimeout, ignoreSelfEvents = true) {
         console.log('getMessageReply$ => data: ', new Date());
         return this.replies$
-            .do(val =>  console.log('getMessageReply *** '))
+            .do(val =>  console.log('getMessageReply **** '))
             .filter(msg => msg)
             .filter(msg => msg.topic === this.gatewayRepliesTopic)
             .filter(msg => !ignoreSelfEvents || msg.attributes.senderId !== this.senderId)
