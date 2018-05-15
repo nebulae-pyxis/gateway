@@ -79,7 +79,7 @@ class PubSubBroker {
             .do(msg => console.log("msg.correlationId => ",msg.correlationId, " Correlation => ", correlationId))
             .filter(msg => msg && msg.correlationId === correlationId)
             .map(msg => msg.data)
-            .timeout(500)
+            .timeout(timeout)
             .first();
     }
 
@@ -119,7 +119,7 @@ class PubSubBroker {
                             replyTo: this.gatewayRepliesTopic
                         }));
             })
-            //.do(messageId => console.log(`Message published through ${topicName}, MessageId=${messageId}`))
+            .do(messageId => console.log(`Message published through ${topicName}, MessageId=${messageId}`, new Date()))
             ;
     }
 
