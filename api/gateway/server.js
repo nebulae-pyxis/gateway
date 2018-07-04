@@ -38,6 +38,18 @@ const resolvers = gqlSchema.resolvers;
 //graphql schema = join types & resolvers
 const schema = graphqlTools.makeExecutableSchema({ typeDefs, resolvers });
 
+// ApolloEngine
+const { ApolloEngine } = require('apollo-engine');
+
+// Initialize engine with your API key. Alternatively,
+// set the ENGINE_API_KEY environment variable when you
+// run your program.
+const engine = new ApolloEngine({
+    apiKey: process.env.APOLLO_ENGINE_API_KEY,
+    logging: {
+        level: process.env.APOLLO_ENGINE_LOG_LEVEL // opts: DEBUG, INFO (default), WARN or ERROR.
+    },
+  });
 
 //Express Server
 const server = express();
@@ -63,6 +75,8 @@ server.use(
             encodedToken: req.headers['authorization'] ? req.headers['authorization'].replace(/Bearer /i, '') : undefined,
             broker,
         },
+        tracing: true,
+        cacheControl: true
     })));
 
 // Expose GraphiQl interface
@@ -76,7 +90,15 @@ server.use(process.env.GRAPHIQL_HTTP_END_POINT, graphiqlExpress(
 
 // Wrap the Express server and combined with WebSockets
 const ws = http.createServer(server);
-ws.listen(PORT, () => {
+engine.listen({
+    port: PORT,
+    httpServer: ws,    
+    // expressApp: server,
+    graphqlPaths: [
+        process.env.GRAPHQL_HTTP_END_POINT,
+        process.env.GRAPHIQL_HTTP_END_POINT
+    ],
+}, () => {
     new SubscriptionServer(
         {
             execute,

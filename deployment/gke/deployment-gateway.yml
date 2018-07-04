@@ -31,7 +31,7 @@ spec:
         - name: google-application-credentials
           mountPath: "/etc/GOOGLE_APPLICATION_CREDENTIALS"
           readOnly: true
-        image: nebulaetpm/gateway:0.0.44
+        image: nebulaetpm/gateway:1.0.0
         imagePullPolicy: Always
         ports:
         - containerPort: 3000
@@ -49,6 +49,13 @@ spec:
           value: /api/gateway/graphiql
         - name: GRAPHQL_WS_END_POINT
           value: /api/gateway/graphql/ws
+        # APOLLO ENGINE CONFIG
+        - name: APOLLO_ENGINE_API_KEY
+            valueFrom:
+                name: apollo
+                key: engine_api_key
+        - name: APOLLO_ENGINE_LOG_LEVEL
+          value: WARN         
         # GCLOUD PUB_SUB CONGIF       
         - name: BROKER_TYPE
           value: PUBSUB         
