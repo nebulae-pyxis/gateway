@@ -51,9 +51,10 @@ spec:
           value: /api/gateway/graphql/ws
         # APOLLO ENGINE CONFIG
         - name: APOLLO_ENGINE_API_KEY
-            valueFrom:
-                name: apollo
-                key: engine_api_key
+          valueFrom:
+            secretKeyRef:
+              name: apollo
+              key: engine_api_key
         - name: APOLLO_ENGINE_LOG_LEVEL
           value: WARN         
         # GCLOUD PUB_SUB CONGIF       
