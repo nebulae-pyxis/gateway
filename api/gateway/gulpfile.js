@@ -10,10 +10,10 @@ const paths = {
 }
 let LAST_SYNC_TIMESTAMP = 0;
 const DEBOUNCE_TIME = 2000;
-gulp.task('default', ['syncSource'] );
+// gulp.task('default', ['syncSource'] );
 
 // configure which files to watch and what tasks to use on file changes
-gulp.task('syncSource', () => {
+gulp.task('dev-sync-source', () => {
     gulp.watch([
         `graphql/**/*`,
         ...paths.ignoreFromDistFolder
