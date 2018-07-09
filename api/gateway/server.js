@@ -155,3 +155,9 @@ engine.listen({
     console.log(`WEBSOCKET END POINT: ws://${process.env.GRAPHQL_END_POINT_HOST}:${process.env.GRAPHQL_END_POINT_PORT}${process.env.GRAPHQL_WS_END_POINT}`);
     console.log(`GRAPHIQL PAGE: http://${process.env.GRAPHQL_END_POINT_HOST}:${process.env.GRAPHQL_END_POINT_PORT}${process.env.GRAPHIQL_HTTP_END_POINT}`);
 });
+
+engine.on('error', (err) => {
+    console.log('There was an error starting the server or Engine.');
+    console.error(err);
+    process.exit(1);
+  });
