@@ -5,7 +5,7 @@
   "main": "server.js",
   "scripts": {
     "start": "node server.js",
-    "start-dev-env": "gulp dev-sync-source & nodemon server.js",
+    "start-dev-env": "gulp dev-sync-source --silent & nodemon server.js",
     "test": "./node_modules/.bin/mocha --recursive --reporter spec"
   },
   "author": "sebastian.molano@nebulae.com.co",
