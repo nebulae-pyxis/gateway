@@ -25,9 +25,7 @@ gulp.task('dev-sync-source', () => {
 
 gulp.task('updateRepoFiles', ()=> {
     if( (Date.now() - LAST_SYNC_TIMESTAMP) >= DEBOUNCE_TIME){
-    console.log('#############################################################');
     console.log('#################### UPDATING SRC FOLDER ####################');
-    console.log('#############################################################');
     LAST_SYNC_TIMESTAMP = Date.now();
     return gulp.src([
         `graphql/**/*`,
@@ -38,9 +36,7 @@ gulp.task('updateRepoFiles', ()=> {
 });
 gulp.task('updateDevelpmentFiles', ()=> {
     if( (Date.now() - LAST_SYNC_TIMESTAMP) >= DEBOUNCE_TIME){
-        console.log('#############################################################');
         console.log('################ UPDATING DEVELOPMENT FOLDER ################');
-        console.log('#############################################################');
         LAST_SYNC_TIMESTAMP = Date.now();
         return gulp.src(`${paths.srcFolder}/**/*`)
         .pipe(gulp.dest(`./`));
