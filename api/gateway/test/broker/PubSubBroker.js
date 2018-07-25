@@ -9,7 +9,7 @@ const PubSubBroker = require('../../broker/PubSubBroker');
 let pubsubBroker = {};
 let payload = { a: 1, b: 2, c: 3 };
 
-process.env.GOOGLE_APPLICATION_CREDENTIALS = '/Users/sebastianmolano/NebulaE/Projects/TPM/gateway/etc/gcloud-service-key.json';
+process.env.GOOGLE_APPLICATION_CREDENTIALS = '/Users/sebastianmolano/NebulaE/Projects/PYXIS/gateway/etc/gcloud-service-key.json';
 
 
 describe('PUBSUB BROKER', function () {
@@ -17,7 +17,7 @@ describe('PUBSUB BROKER', function () {
         it('instance PubSubBroker', function (done) {
             pubsubBroker = new PubSubBroker({
                 replyTimeOut: 10000,
-                projectId: 'ne-tpm-prod',
+                projectId: 'nebulae-pyxis',
                 gatewayRepliesTopic: 'gateway-replies',
                 gatewayRepliesTopicSubscription: 'gateway-replies-test'
             });

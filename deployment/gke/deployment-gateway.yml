@@ -31,7 +31,7 @@ spec:
         - name: google-application-credentials
           mountPath: "/etc/GOOGLE_APPLICATION_CREDENTIALS"
           readOnly: true
-        image: nebulaetpm/gateway:1.0.0
+        image: nebulaepyxis/gateway:1.0.0
         imagePullPolicy: Always
         ports:
         - containerPort: 3000
@@ -63,7 +63,7 @@ spec:
         - name: GOOGLE_APPLICATION_CREDENTIALS
           value: /etc/GOOGLE_APPLICATION_CREDENTIALS/gcloud-service-key.json  
         - name: GCLOUD_PROJECT_ID
-          value: ne-tpm-prod  
+          value: ne-pyxis-prod  
         - name: GATEWAY_REPLIES_TOPIC
           value: gateway-replies
         - name: GATEWAY_REPLIES_TOPIC_SUBSCRIPTION

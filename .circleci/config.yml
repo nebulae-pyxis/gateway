@@ -15,7 +15,7 @@ jobs:
             export PATH=~/.npm-global/bin:$PATH
             source ~/.profile
             npm install -g @nebulae/cli
-            nebulae compose-api production --api-type=NEBULAE_GATEWAY --api-repo=https://github.com/nebulae-tpm/gateway.git --api-id=gateway --output-dir=/tmp/nebulae/gateway/ --store-type=GCP_DATASTORE --gcp-service-account-token=/tmp/gcloud-service-key.json      
+            nebulae compose-api production --api-type=NEBULAE_GATEWAY --api-repo=https://github.com/nebulae-pyxis/gateway.git --api-id=gateway --output-dir=/tmp/nebulae/gateway/ --store-type=GCP_DATASTORE --gcp-service-account-token=/tmp/gcloud-service-key.json      
             ls /tmp/nebulae/gateway
       - persist_to_workspace:
           root: /tmp/nebulae
@@ -64,12 +64,12 @@ workflows:
   build-and-deploy:
     jobs:
       - build-api:
-          context: TPM
+          context: PYXIS
       - build-docker:
-          context: TPM
+          context: PYXIS
           requires:
             - build-api
       - deploy-prod:
-          context: TPM
+          context: PYXIS
           requires:
             - build-docker
