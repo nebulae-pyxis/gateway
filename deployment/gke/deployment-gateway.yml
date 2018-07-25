@@ -63,7 +63,7 @@ spec:
         - name: GOOGLE_APPLICATION_CREDENTIALS
           value: /etc/GOOGLE_APPLICATION_CREDENTIALS/gcloud-service-key.json  
         - name: GCLOUD_PROJECT_ID
-          value: ne-pyxis-prod  
+          value: nebulae-pyxis  
         - name: GATEWAY_REPLIES_TOPIC
           value: gateway-replies
         - name: GATEWAY_REPLIES_TOPIC_SUBSCRIPTION
