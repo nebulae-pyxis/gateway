@@ -89,7 +89,7 @@ spec:
           value: '2000'
         # JWT CONGIF        
         - name: JWT_PUBLIC_KEY
-          value: -----BEGIN PUBLIC KEY-----\nMIIBIjANBgkqhkiG9w0BAQEFAAOCAQ8AMIIBCgKCAQEArdoGFIsq/MyL3DAtpuWxg/mMvpZ81+R64TUn4JWulAbN76q5M0eXRGTkxw6Hu1odji0o++R/NjvO9IMwcgVfhMqq9zhkIITj2M/AnKyT+qg56tquRi1pEli1lpNtQl+PB38AKSbALNA0fCVq+LV03OwgYlyimZbYHmsKBmoojJBqsG0hpsthXDhQPhdTYS+3K0InhLZADK4IRQISLTh/xcShPouOCi1CzOtx3fLnw3WPbGumYXuMtwnvhPbyfKZT9Z60/1489WEs2zcXlcQJjoryFkNzztmfOVTg/Ajodt7GPksbBw2SnUkwg2jJrovdsfpyDzgQnGOw2fbBcT4CsQIDAQAB\n-----END PUBLIC KEY-----          
+          value: -----BEGIN PUBLIC KEY-----\nMIIBIjANBgkqhkiG9w0BAQEFAAOCAQ8AMIIBCgKCAQEA6mv0ByMprlVOd2tzyw/+BxOylLOTG5+oLFgaCiQu3RSIoVyDXtK9d2+kSmP2qsDE+wqVFEdpw2HrUXB8vhjUpu0CluzIw4m5v6l6ExHqyQHBWTCrX4Aynb3eQIWDm1B5Z592XYBLC+ZMDCDkUeiy7R4rGZnG7BPieAGP7KpO23Yc3YVe16Xkwewp3KOgMwch3uyjLVLu386qAeRfEd6yoMYjt+n5dJ5Lv9ZE+vod+BXOrlbmar3GLnE+x+c07YQfAk1jG2WRucN2wqmBKvygRz/Z50jMEclUjddH2wiXbBp9g83MDSQna93tOxlnhRmCTkzsRZqSRVb7HzjASIbfFQIDAQAB\n-----END PUBLIC KEY-----          
               
       volumes:
       - name: google-application-credentials
