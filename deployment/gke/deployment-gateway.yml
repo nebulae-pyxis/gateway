@@ -35,6 +35,15 @@ spec:
         imagePullPolicy: Always
         ports:
         - containerPort: 3000
+        livenessProbe:
+          # an http probe
+          httpGet:
+            path: /api/gateway/graphiql
+            port: 80
+          # length of time to wait for a pod to initialize
+          # after pod startup, before applying health checking
+          initialDelaySeconds: 5
+          timeoutSeconds: 10
         env:
         - name: NODE_ENV
           value: production
