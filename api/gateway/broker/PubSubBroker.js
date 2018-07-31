@@ -57,7 +57,6 @@ class PubSubBroker {
      * Returns an Observable that resolves the message response
      */
     forwardAndGetReply$(topic, type, payload, timeout = this.replyTimeout, ignoreSelfEvents = true, ops) {
-        console.log('forwardAndGetReply$ ---> ', new Date());
         return this.forward$(topic, type, payload, ops)       
             .switchMap((messageId) => this.getMessageReply$(messageId, timeout, ignoreSelfEvents));
     }
@@ -70,16 +69,13 @@ class PubSubBroker {
     * @param {number} timeout 
     */
     getMessageReply$(correlationId, timeout = this.replyTimeout, ignoreSelfEvents = true) {
-        console.log('getMessageReply$ => data: ', new Date());
         return this.replies$
-            .do(val =>  console.log('getMessageReply **** '))
             .filter(msg => msg)
             .filter(msg => msg.topic === this.gatewayRepliesTopic)
             .filter(msg => !ignoreSelfEvents || msg.attributes.senderId !== this.senderId)
-            .do(msg => console.log("msg.correlationId => ",msg.correlationId, " Correlation => ", correlationId))
             .filter(msg => msg && msg.correlationId === correlationId)
             .map(msg => msg.data)
-            .timeout(2000)
+            .timeout(timeout)
             .first();
     }
 
@@ -130,7 +126,6 @@ class PubSubBroker {
      * @param {number} timeout 
      */
     getMaterializedViewsUpdates$(types, ignoreSelfEvents = true) {
-        console.log('getMaterializedViewsUpdates$1 ', types);
         return this.replies$
             .filter(msg => msg)
             .filter(msg => msg.topic === this.materializedViewTopic)
@@ -190,14 +185,12 @@ class PubSubBroker {
      * @param {string} subscriptionName 
      */
     getSubscription$(topicName, subscriptionName) {
-        console.log('getSubscription$ ==> 1');
         return this.getTopic$(topicName)
             .do(topic => console.log('getTopic => ', topic.name))
             .mergeMap(topic => Rx.Observable.fromPromise(
                 topic.subscription(subscriptionName)
                     .get({ autoCreate: true }))
             ).map(results => {
-                console.log('getSubscription$ result ==> ', results);
                 return {
                     subscription: results[0],
                     topicName,
