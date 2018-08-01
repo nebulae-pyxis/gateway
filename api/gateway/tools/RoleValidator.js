@@ -1,4 +1,5 @@
 const Rx = require("rxjs");
+const { CustomError } = require("./customError");
 /**
  * Role validator
  */
