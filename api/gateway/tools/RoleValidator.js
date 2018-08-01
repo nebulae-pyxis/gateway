@@ -5,12 +5,31 @@ const { CustomError } = require("./customError");
  */
 class RoleValidator {
 
-    /**
- * Checks if the user has the permissions needed, otherwise throws an error according to the passed parameters.
+
+  /**
+   * Checks if the user has the permissions needed, otherwise throws an error according to the passed parameters.
+   * @param {*} userRoles Roles of the user
+   * @param {*} requiredRoles required roles
+   * @param {*} errorName Name of the error that will be thrown if the user does not have at least one of the required roles
+   * @param {*} errorMethodName Method Name where the error was generated.
+   * @param {*} errorCode Error code that will be thrown if the user do not have at least one of the required roles
+   * @param {*} errorMessage Error message that will be thrown if the user do not have at least one of the required roles
+   */
+  static checkAndThrowError(userRoles, requiredRoles, errorName, errorMethodName, errorCode, errorMessage){
+    if(!RoleValidator.hasPermissions(userRoles, requiredRoles)){
+      const err = new CustomError(errorName, errorMethodName, errorCode, errorMessage);
+      err.message = err.getContent();
+      Error.captureStackTrace(err, "Error");
+      throw err;
+    }
+  }
+
+/**
+ * Observable that checks if the user has the permissions needed, otherwise throws an error according to the passed parameters.
  *
  * @param {*} UserRoles Roles of the authenticated user
  * @param {*} name Context name
- * @param {*} method method name
+ * @param {*} errorMethodName Method Name where the error was generated.
  * @param {*} errorCode  This is the error code that will be thrown if the user do not have the required roles
  * @param {*} errorMessage This is the error message that will be used if the user do not have the required roles
  * @param {*} requiredRoles Array with required roles (The authenticated user must have at least one of the required roles,
